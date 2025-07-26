@@ -29,22 +29,23 @@ export default function ProductGrid() {
       <section id="products" className="py-12 bg-light-slate/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4 minecraft-green">Our Products</h2>
-            <p className="text-xl minecraft-gray">Choose from our premium selection of ranks and coins</p>
+            <h2 className="text-4xl font-bold mb-4 minecraft-green animate-slide-up">Our Products</h2>
+            <p className="text-xl minecraft-gray animate-fade-in stagger-1">Choose from our premium selection of ranks and coins</p>
           </div>
           
           <div className="flex flex-wrap justify-center gap-4 mb-12">
-            {filterButtons.map((filter) => (
+            {filterButtons.map((filter, index) => (
               <Button
                 key={filter.id}
                 onClick={() => setActiveFilter(filter.id)}
-                className={`px-6 py-3 font-bold transition-all duration-300 ${
+                className={`px-6 py-3 font-bold transition-all duration-300 hover-lift animate-scale-in ${
                   activeFilter === filter.id
-                    ? "bg-minecraft-green text-dark-slate"
+                    ? "bg-minecraft-green text-dark-slate animate-glow"
                     : "bg-light-slate border border-minecraft-gray/30 hover:bg-minecraft-green hover:text-dark-slate"
                 }`}
+                style={{ animationDelay: `${0.2 + index * 0.1}s` }}
               >
-                {filter.icon && <filter.icon className="h-4 w-4 mr-2" />}
+                {filter.icon && <filter.icon className="h-4 w-4 mr-2 hover-rotate transition-transform duration-300" />}
                 {filter.label}
               </Button>
             ))}
@@ -58,8 +59,8 @@ export default function ProductGrid() {
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
               {[...Array(8)].map((_, i) => (
-                <div key={i} className="bg-light-slate rounded-xl p-6 animate-pulse">
-                  <div className="h-48 bg-minecraft-gray/20 rounded mb-4"></div>
+                <div key={i} className="bg-light-slate rounded-xl p-6 animate-pulse animate-scale-in" style={{ animationDelay: `${i * 0.1}s` }}>
+                  <div className="h-48 bg-minecraft-gray/20 rounded mb-4 animate-shimmer"></div>
                   <div className="h-4 bg-minecraft-gray/20 rounded mb-2"></div>
                   <div className="h-4 bg-minecraft-gray/20 rounded mb-4 w-3/4"></div>
                   <div className="h-8 bg-minecraft-gray/20 rounded"></div>
@@ -68,8 +69,12 @@ export default function ProductGrid() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
+              {filteredProducts.map((product, index) => (
+                <ProductCard 
+                  key={product.id} 
+                  product={product} 
+                  animationDelay={index * 0.1}
+                />
               ))}
             </div>
           )}

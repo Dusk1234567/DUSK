@@ -18,12 +18,12 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-light-slate border-b border-minecraft-green/20 sticky top-0 z-40">
+    <header className="bg-light-slate border-b border-minecraft-green/20 sticky top-0 z-40 animate-slide-up">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <div className="text-2xl font-bold minecraft-green">
-              <i className="fas fa-cube mr-2"></i>
+            <div className="text-2xl font-bold minecraft-green animate-scale-in hover-glow transition-all duration-300 cursor-pointer">
+              <i className="fas fa-cube mr-2 animate-wiggle"></i>
               LifeSteal Shop
             </div>
           </div>
@@ -31,25 +31,25 @@ export default function Header() {
           <nav className="hidden md:flex items-center space-x-8">
             <button 
               onClick={() => scrollToSection('home')}
-              className="hover:text-minecraft-green transition-colors duration-300"
+              className="hover:text-minecraft-green transition-all duration-300 hover-scale animate-slide-in-left stagger-1"
             >
               Home
             </button>
             <button 
               onClick={() => scrollToSection('products')}
-              className="hover:text-minecraft-green transition-colors duration-300"
+              className="hover:text-minecraft-green transition-all duration-300 hover-scale animate-slide-in-left stagger-2"
             >
               Products
             </button>
             <button 
               onClick={() => scrollToSection('testimonials')}
-              className="hover:text-minecraft-green transition-colors duration-300"
+              className="hover:text-minecraft-green transition-all duration-300 hover-scale animate-slide-in-left stagger-3"
             >
               Reviews
             </button>
             <button 
               onClick={() => scrollToSection('footer')}
-              className="hover:text-minecraft-green transition-colors duration-300"
+              className="hover:text-minecraft-green transition-all duration-300 hover-scale animate-slide-in-left stagger-4"
             >
               Support
             </button>
@@ -69,12 +69,12 @@ export default function Header() {
             
             <Button
               onClick={() => setIsOpen(true)}
-              className="relative bg-minecraft-green hover:bg-minecraft-dark-green text-dark-slate transition-all duration-300"
+              className="relative bg-minecraft-green hover:bg-minecraft-dark-green text-dark-slate transition-all duration-300 hover-lift animate-slide-in-right stagger-5"
             >
-              <ShoppingCart className="h-4 w-4" />
+              <ShoppingCart className="h-4 w-4 hover-rotate transition-transform duration-300" />
               <span className="ml-2 hidden sm:inline">Cart</span>
               {itemCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-neon-magenta text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                <span className="absolute -top-2 -right-2 bg-neon-magenta text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-bounce-slow">
                   {itemCount}
                 </span>
               )}

@@ -25,48 +25,48 @@ export default function Hero() {
       
       <div className="relative z-20 text-center px-4 max-w-4xl mx-auto">
         <div className="animate-float">
-          <h1 className="text-6xl md:text-8xl font-bold mb-6 bg-gradient-to-r from-minecraft-green to-neon-cyan bg-clip-text text-transparent">
+          <h1 className="text-6xl md:text-8xl font-bold mb-6 bg-gradient-to-r from-minecraft-green to-neon-cyan bg-clip-text text-transparent animate-scale-in">
             LIFESTEAL SHOP
           </h1>
         </div>
         
-        <p className="text-xl md:text-2xl mb-8 minecraft-gray">
+        <p className="text-xl md:text-2xl mb-8 minecraft-gray animate-fade-in stagger-2">
           Upgrade your Minecraft experience with premium ranks and coins
         </p>
         
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up stagger-3">
           <Button
             onClick={scrollToProducts}
-            className="bg-minecraft-green hover:bg-minecraft-dark-green text-dark-slate px-8 py-4 text-lg font-bold transition-all duration-300 animate-glow"
+            className="bg-minecraft-green hover:bg-minecraft-dark-green text-dark-slate px-8 py-4 text-lg font-bold transition-all duration-300 animate-glow hover-lift animate-scale-in stagger-1 click-effect"
           >
-            <Crown className="h-5 w-5 mr-2" />
+            <Crown className="h-5 w-5 mr-2 hover-rotate transition-transform duration-300" />
             Browse Ranks
           </Button>
           <Button
             onClick={scrollToProducts}
             variant="outline"
-            className="border-2 border-neon-cyan text-neon-cyan hover:bg-neon-cyan hover:text-dark-slate px-8 py-4 text-lg font-bold transition-all duration-300"
+            className="border-2 border-neon-cyan text-neon-cyan hover:bg-neon-cyan hover:text-dark-slate px-8 py-4 text-lg font-bold transition-all duration-300 hover-lift animate-scale-in stagger-2 click-effect"
           >
-            <Coins className="h-5 w-5 mr-2" />
+            <Coins className="h-5 w-5 mr-2 hover-rotate transition-transform duration-300" />
             Buy Coins
           </Button>
         </div>
         
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-          <div className="bg-light-slate/50 p-6 rounded-lg border border-minecraft-green/20">
-            <Zap className="h-12 w-12 neon-cyan mx-auto mb-4" />
-            <h3 className="text-xl font-bold mb-2">Instant Delivery</h3>
-            <p className="minecraft-gray">Get your purchases instantly after payment</p>
+          <div className="bg-light-slate/50 p-6 rounded-lg border border-minecraft-green/20 hover-lift transition-all duration-300 animate-slide-up stagger-4">
+            <Zap className="h-12 w-12 neon-cyan mx-auto mb-4 animate-pulse-slow hover-scale transition-transform duration-300" />
+            <h3 className="text-xl font-bold mb-2 animate-fade-in stagger-5">Instant Delivery</h3>
+            <p className="minecraft-gray animate-fade-in stagger-6">Get your purchases instantly after payment</p>
           </div>
-          <div className="bg-light-slate/50 p-6 rounded-lg border border-minecraft-green/20">
-            <Shield className="h-12 w-12 minecraft-green mx-auto mb-4" />
-            <h3 className="text-xl font-bold mb-2">Secure Payment</h3>
-            <p className="minecraft-gray">Safe and encrypted payment processing</p>
+          <div className="bg-light-slate/50 p-6 rounded-lg border border-minecraft-green/20 hover-lift transition-all duration-300 animate-slide-up stagger-5">
+            <Shield className="h-12 w-12 minecraft-green mx-auto mb-4 animate-pulse-slow hover-scale transition-transform duration-300" />
+            <h3 className="text-xl font-bold mb-2 animate-fade-in stagger-6">Secure Payment</h3>
+            <p className="minecraft-gray animate-fade-in stagger-7">Safe and encrypted payment processing</p>
           </div>
-          <div className="bg-light-slate/50 p-6 rounded-lg border border-minecraft-green/20">
-            <Headphones className="h-12 w-12 neon-magenta mx-auto mb-4" />
-            <h3 className="text-xl font-bold mb-2">24/7 Support</h3>
-            <p className="minecraft-gray">Round-the-clock customer assistance</p>
+          <div className="bg-light-slate/50 p-6 rounded-lg border border-minecraft-green/20 hover-lift transition-all duration-300 animate-slide-up stagger-6">
+            <Headphones className="h-12 w-12 neon-magenta mx-auto mb-4 animate-pulse-slow hover-scale transition-transform duration-300" />
+            <h3 className="text-xl font-bold mb-2 animate-fade-in stagger-7">24/7 Support</h3>
+            <p className="minecraft-gray animate-fade-in stagger-8">Round-the-clock customer assistance</p>
           </div>
         </div>
       </div>

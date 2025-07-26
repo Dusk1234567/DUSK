@@ -52,17 +52,17 @@ export default function CartSidebar() {
       )}
 
       {/* Sidebar */}
-      <div className={`fixed right-0 top-0 h-full w-96 max-w-[90vw] bg-light-slate border-l border-minecraft-green/20 transform transition-transform duration-300 z-50 ${
-        isOpen ? "translate-x-0" : "translate-x-full"
+      <div className={`fixed right-0 top-0 h-full w-96 max-w-[90vw] bg-light-slate border-l border-minecraft-green/20 transform transition-all duration-300 z-50 ${
+        isOpen ? "translate-x-0 animate-slide-in-right" : "translate-x-full"
       }`}>
         <div className="p-6 h-full flex flex-col">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold minecraft-green">Shopping Cart</h3>
+          <div className="flex items-center justify-between mb-6 animate-fade-in">
+            <h3 className="text-xl font-bold minecraft-green animate-scale-in">Shopping Cart</h3>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setIsOpen(false)}
-              className="minecraft-gray hover:text-white"
+              className="minecraft-gray hover:text-white hover-rotate transition-all duration-300"
             >
               <X className="h-5 w-5" />
             </Button>
@@ -75,13 +75,17 @@ export default function CartSidebar() {
               </div>
             ) : (
               <div className="space-y-4 mb-6">
-                {items.map((item) => (
-                  <div key={item.id} className="flex items-center space-x-4 p-4 bg-dark-slate rounded-lg">
-                    <div className="w-16 h-16 bg-minecraft-green/20 rounded-lg flex items-center justify-center">
+                {items.map((item, index) => (
+                  <div 
+                    key={item.id} 
+                    className="flex items-center space-x-4 p-4 bg-dark-slate rounded-lg hover-lift transition-all duration-300 animate-slide-in-left"
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                  >
+                    <div className="w-16 h-16 bg-minecraft-green/20 rounded-lg flex items-center justify-center animate-pulse-slow hover-scale transition-transform duration-300">
                       {item.product?.category === "ranks" ? (
-                        <Crown className="h-6 w-6 minecraft-green" />
+                        <Crown className="h-6 w-6 minecraft-green hover-rotate transition-transform duration-300" />
                       ) : (
-                        <Coins className="h-6 w-6 neon-cyan" />
+                        <Coins className="h-6 w-6 neon-cyan hover-rotate transition-transform duration-300" />
                       )}
                     </div>
                     <div className="flex-1">
@@ -135,16 +139,16 @@ export default function CartSidebar() {
               <Button
                 onClick={handleCheckout}
                 disabled={checkoutMutation.isPending}
-                className="w-full bg-minecraft-green hover:bg-minecraft-dark-green text-dark-slate font-bold py-3 mb-4 transition-all duration-300"
+                className="w-full bg-minecraft-green hover:bg-minecraft-dark-green text-dark-slate font-bold py-3 mb-4 transition-all duration-300 hover-lift animate-glow"
               >
-                <CreditCard className="h-4 w-4 mr-2" />
+                <CreditCard className="h-4 w-4 mr-2 hover-rotate transition-transform duration-300" />
                 {checkoutMutation.isPending ? "Processing..." : "Proceed to Checkout"}
               </Button>
               
               <Button
                 onClick={clearCart}
                 variant="outline"
-                className="w-full border-minecraft-gray/30 minecraft-gray hover:text-white hover:border-white py-3 transition-all duration-300"
+                className="w-full border-minecraft-gray/30 minecraft-gray hover:text-white hover:border-white py-3 transition-all duration-300 hover-lift"
               >
                 Clear Cart
               </Button>

@@ -5,9 +5,10 @@ import { useCart } from "@/hooks/use-cart";
 
 interface ProductCardProps {
   product: Product;
+  animationDelay?: number;
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product, animationDelay = 0 }: ProductCardProps) {
   const { addToCart } = useCart();
 
   const getBadgeColorClass = (color: string | null) => {
@@ -47,7 +48,10 @@ export default function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <div className="bg-light-slate rounded-xl overflow-hidden border border-minecraft-green/20 hover:border-minecraft-green transition-all duration-300 hover:shadow-2xl hover:shadow-minecraft-green/30 group">
+    <div 
+      className="bg-light-slate rounded-xl overflow-hidden border border-minecraft-green/20 hover:border-minecraft-green transition-all duration-300 hover:shadow-2xl hover:shadow-minecraft-green/30 group hover-lift animate-scale-in"
+      style={{ animationDelay: `${animationDelay}s` }}
+    >
       <img 
         src={product.imageUrl} 
         alt={product.name}
@@ -93,9 +97,9 @@ export default function ProductCard({ product }: ProductCardProps) {
         
         <Button
           onClick={handleAddToCart}
-          className={`w-full font-bold py-3 transition-all duration-300 hover:shadow-lg ${getButtonColorClass(product.buttonColor)}`}
+          className={`w-full font-bold py-3 transition-all duration-300 hover:shadow-lg hover-lift click-effect ${getButtonColorClass(product.buttonColor)}`}
         >
-          <ShoppingCart className="h-4 w-4 mr-2" />
+          <ShoppingCart className="h-4 w-4 mr-2 hover-rotate transition-transform duration-300" />
           Add to Cart
         </Button>
       </div>

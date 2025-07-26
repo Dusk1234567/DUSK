@@ -39,27 +39,35 @@ export default function Testimonials() {
     <section id="testimonials" className="py-20 bg-light-slate/30">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold mb-4 minecraft-green">What Our Players Say</h2>
-          <p className="text-xl minecraft-gray">Join thousands of satisfied customers</p>
+          <h2 className="text-4xl font-bold mb-4 minecraft-green animate-slide-up">What Our Players Say</h2>
+          <p className="text-xl minecraft-gray animate-fade-in stagger-1">Join thousands of satisfied customers</p>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {testimonials.map((testimonial, index) => (
-            <div key={index} className="bg-light-slate p-6 rounded-xl border border-minecraft-green/20">
+            <div 
+              key={index} 
+              className="bg-light-slate p-6 rounded-xl border border-minecraft-green/20 hover-lift transition-all duration-300 animate-scale-in"
+              style={{ animationDelay: `${0.2 + index * 0.2}s` }}
+            >
               <div className="flex items-center mb-4">
-                <div className={`w-12 h-12 ${getAvatarColorClass(testimonial.avatar)} rounded-full flex items-center justify-center mr-4`}>
+                <div className={`w-12 h-12 ${getAvatarColorClass(testimonial.avatar)} rounded-full flex items-center justify-center mr-4 animate-pulse-slow hover-scale transition-transform duration-300`}>
                   <User className="h-6 w-6 text-dark-slate" />
                 </div>
                 <div>
-                  <h4 className="font-bold">{testimonial.name}</h4>
+                  <h4 className="font-bold animate-fade-in" style={{ animationDelay: `${0.4 + index * 0.2}s` }}>{testimonial.name}</h4>
                   <div className="flex text-yellow-400 text-sm">
                     {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-current" />
+                      <Star 
+                        key={i} 
+                        className="h-4 w-4 fill-current hover-scale transition-transform duration-300" 
+                        style={{ animationDelay: `${0.6 + index * 0.2 + i * 0.1}s` }}
+                      />
                     ))}
                   </div>
                 </div>
               </div>
-              <p className="minecraft-gray">"{testimonial.comment}"</p>
+              <p className="minecraft-gray animate-fade-in" style={{ animationDelay: `${0.8 + index * 0.2}s` }}>"{testimonial.comment}"</p>
             </div>
           ))}
         </div>
