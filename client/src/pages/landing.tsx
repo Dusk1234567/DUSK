@@ -12,12 +12,21 @@ export default function Landing() {
             <Crown className="h-8 w-8 minecraft-green" />
             <span className="text-2xl font-bold minecraft-green">LifeSteal Shop</span>
           </div>
-          <Button
-            onClick={() => window.location.href = "/api/login"}
-            className="bg-minecraft-green hover:bg-minecraft-dark-green text-dark-slate font-bold transition-all duration-300 hover-lift"
-          >
-            Login to Continue
-          </Button>
+          <div className="flex gap-4">
+            <Button
+              onClick={() => window.location.href = "/login"}
+              className="bg-minecraft-green hover:bg-minecraft-dark-green text-dark-slate font-bold transition-all duration-300 hover-lift"
+            >
+              Login
+            </Button>
+            <Button
+              onClick={() => window.location.href = "/register"}
+              variant="outline"
+              className="border-minecraft-green text-minecraft-green hover:bg-minecraft-green hover:text-dark-slate transition-all duration-300"
+            >
+              Sign Up
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -40,14 +49,14 @@ export default function Landing() {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Button
-              onClick={() => window.location.href = "/api/login"}
+              onClick={() => window.location.href = "/login"}
               className="bg-minecraft-green hover:bg-minecraft-dark-green text-dark-slate px-8 py-4 text-lg font-bold transition-all duration-300 hover-lift"
             >
               <Crown className="h-5 w-5 mr-2" />
               Login to Browse Ranks
             </Button>
             <Button
-              onClick={() => window.location.href = "/api/login"}
+              onClick={() => window.location.href = "/register"}
               variant="outline"
               className="border-2 border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-slate-900 px-8 py-4 text-lg font-bold transition-all duration-300 hover-lift shadow-lg shadow-cyan-400/20 hover:shadow-cyan-400/40"
               style={{
@@ -57,7 +66,7 @@ export default function Landing() {
               }}
             >
               <Coins className="h-5 w-5 mr-2" />
-              Login to Buy Coins
+              Sign Up to Buy Coins
             </Button>
           </div>
           

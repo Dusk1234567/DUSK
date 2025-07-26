@@ -53,7 +53,11 @@ export function setupGoogleAuth(app: Express) {
 
   app.get('/api/auth/google/callback',
     passport.authenticate('google', { failureRedirect: '/login' }),
-    (req, res) => {
+    (req: any, res) => {
+      // Set session after successful Google authentication
+      if (req.user && req.user.id) {
+        (req.session as any).userId = req.user.id;
+      }
       // Successful authentication, redirect home
       res.redirect('/');
     }

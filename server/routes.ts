@@ -207,11 +207,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let userId: string | undefined;
       
       // Check for session-based auth first (email/Google)
-      if (req.session.userId) {
+      if (req.session?.userId) {
         userId = req.session.userId;
       }
       // Check for Replit auth
-      else if (req.isAuthenticated() && req.user?.claims?.sub) {
+      else if (req.isAuthenticated && req.isAuthenticated() && req.user?.claims?.sub) {
         userId = req.user.claims.sub;
       }
       
@@ -228,6 +228,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Logout route
+  app.post('/api/auth/logout', async (req: any, res) => {
+    try {
+      // Clear session for email/Google auth
+      if (req.session) {
+        req.session.destroy((err: any) => {
+          if (err) {
+            console.error("Session destroy error:", err);
+          }
+        });
+      }
+      
+      // Handle Replit auth logout
+      if (req.logout) {
+        req.logout(() => {});
+      }
+      
+      res.json({ message: "Logged out successfully" });
+    } catch (error) {
+      console.error("Error during logout:", error);
+      res.status(500).json({ message: "Failed to logout" });
     }
   });
 
