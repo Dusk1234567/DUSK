@@ -49,6 +49,14 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Seed database with sample products
+  try {
+    const { seedDatabase } = await import('./seedData');
+    await seedDatabase();
+  } catch (error) {
+    console.log('Database seeding skipped:', error);
+  }
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

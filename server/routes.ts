@@ -1,7 +1,8 @@
 import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertCartItemSchema, insertOrderSchema } from "@shared/schema";
+import { insertCartItemSchema, insertOrderSchema, insertReviewSchema } from "@shared/schema";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import { randomUUID } from "crypto";
 
 declare module 'express-session' {
@@ -11,6 +12,9 @@ declare module 'express-session' {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup authentication
+  await setupAuth(app);
+
   // Get session ID or create one
   function getSessionId(req: Request): string {
     if (!req.session.id) {
@@ -189,6 +193,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(order);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch order" });
+    }
+  });
+
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Reviews routes
+  app.get('/api/reviews/:productId', async (req, res) => {
+    try {
+      const reviews = await storage.getReviewsByProduct(req.params.productId);
+      res.json(reviews);
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+      res.status(500).json({ message: "Failed to fetch reviews" });
+    }
+  });
+
+  app.get('/api/products/:productId/reviews', async (req, res) => {
+    try {
+      const reviews = await storage.getReviewsByProduct(req.params.productId);
+      res.json(reviews);
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+      res.status(500).json({ message: "Failed to fetch reviews" });
+    }
+  });
+
+  app.post('/api/reviews', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const reviewData = insertReviewSchema.parse({
+        ...req.body,
+        userId
+      });
+
+      const review = await storage.createReview(reviewData);
+      res.json(review);
+    } catch (error) {
+      console.error("Error creating review:", error);
+      res.status(400).json({ 
+        message: "Failed to create review",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.post('/api/products/:productId/reviews', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const reviewData = insertReviewSchema.parse({
+        ...req.body,
+        userId,
+        productId: req.params.productId
+      });
+
+      const review = await storage.createReview(reviewData);
+      res.json(review);
+    } catch (error) {
+      console.error("Error creating review:", error);
+      res.status(400).json({ 
+        message: "Failed to create review",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.get('/api/user/reviews', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const reviews = await storage.getReviewsByUser(userId);
+      res.json(reviews);
+    } catch (error) {
+      console.error("Error fetching user reviews:", error);
+      res.status(500).json({ message: "Failed to fetch user reviews" });
     }
   });
 

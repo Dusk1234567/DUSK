@@ -3,10 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Crown, Coins } from "lucide-react";
 import ProductCard from "./product-card";
+import ProductDetailModal from "./product-detail-modal";
 import { Product } from "@shared/schema";
 
 export default function ProductGrid() {
   const [activeFilter, setActiveFilter] = useState<string>("all");
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data: products = [], isLoading } = useQuery<Product[]>({
     queryKey: ["/api/products"],
@@ -16,6 +19,16 @@ export default function ProductGrid() {
     if (activeFilter === "all") return true;
     return product.category === activeFilter;
   });
+
+  const handleViewDetails = (product: Product) => {
+    setSelectedProduct(product);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedProduct(null);
+  };
 
   const filterButtons = [
     { id: "all", label: "All Products", icon: null },
@@ -74,6 +87,7 @@ export default function ProductGrid() {
                   key={product.id} 
                   product={product} 
                   animationDelay={index * 0.1}
+                  onViewDetails={handleViewDetails}
                 />
               ))}
             </div>
@@ -86,6 +100,13 @@ export default function ProductGrid() {
           )}
         </div>
       </section>
+
+      {/* Product Detail Modal with Reviews */}
+      <ProductDetailModal
+        product={selectedProduct}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </>
   );
 }

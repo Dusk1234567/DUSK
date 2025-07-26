@@ -1,14 +1,15 @@
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Star } from "lucide-react";
+import { ShoppingCart, Star, Eye } from "lucide-react";
 import { Product } from "@shared/schema";
 import { useCart } from "@/hooks/use-cart";
 
 interface ProductCardProps {
   product: Product;
   animationDelay?: number;
+  onViewDetails?: (product: Product) => void;
 }
 
-export default function ProductCard({ product, animationDelay = 0 }: ProductCardProps) {
+export default function ProductCard({ product, animationDelay = 0, onViewDetails }: ProductCardProps) {
   const { addToCart } = useCart();
 
   const getBadgeColorClass = (color: string | null) => {
@@ -95,13 +96,23 @@ export default function ProductCard({ product, animationDelay = 0 }: ProductCard
           )}
         </div>
         
-        <Button
-          onClick={handleAddToCart}
-          className={`w-full font-bold py-3 transition-all duration-300 hover:shadow-lg hover-lift click-effect ${getButtonColorClass(product.buttonColor)}`}
-        >
-          <ShoppingCart className="h-4 w-4 mr-2 hover-rotate transition-transform duration-300" />
-          Add to Cart
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={handleAddToCart}
+            className={`flex-1 font-bold py-3 transition-all duration-300 hover:shadow-lg hover-lift click-effect ${getButtonColorClass(product.buttonColor)}`}
+          >
+            <ShoppingCart className="h-4 w-4 mr-2 hover-rotate transition-transform duration-300" />
+            Add to Cart
+          </Button>
+          
+          <Button
+            onClick={() => onViewDetails?.(product)}
+            variant="outline"
+            className="px-3 py-3 border-minecraft-green text-minecraft-green hover:bg-minecraft-green hover:text-dark-slate transition-all duration-300 hover-lift"
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );
