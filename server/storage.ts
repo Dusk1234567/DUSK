@@ -2,6 +2,8 @@ import {
   products,
   cartItems,
   orders,
+  orderItems,
+  adminWhitelist,
   users,
   reviews,
   type Product,
@@ -10,13 +12,17 @@ import {
   type InsertCartItem,
   type Order,
   type InsertOrder,
+  type OrderItem,
+  type InsertOrderItem,
+  type AdminWhitelist,
+  type InsertAdminWhitelist,
   type User,
   type UpsertUser,
   type Review,
   type InsertReview,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, sql } from "drizzle-orm";
 
 export interface IStorage {
   // Product operations
@@ -34,11 +40,29 @@ export interface IStorage {
 
   // Order operations
   createOrder(order: InsertOrder): Promise<Order>;
+  createOrderWithItems(order: InsertOrder, items: InsertOrderItem[]): Promise<Order>;
   getOrder(id: string): Promise<Order | undefined>;
+  getOrdersByUser(userId: string): Promise<Order[]>;
+  getAllOrders(): Promise<Order[]>;
+  updateOrderStatus(id: string, status: string): Promise<Order | undefined>;
+  
+  // Order items operations
+  getOrderItems(orderId: string): Promise<OrderItem[]>;
+  
+  // Admin operations
+  isUserAdmin(userId: string): Promise<boolean>;
+  addToAdminWhitelist(admin: InsertAdminWhitelist): Promise<AdminWhitelist>;
+  removeFromAdminWhitelist(email: string): Promise<boolean>;
+  getAdminWhitelist(): Promise<AdminWhitelist[]>;
+  getUserStats(): Promise<{ totalUsers: number; totalOrders: number; totalRevenue: string }>;
+  updateUserAdminStatus(userId: string, isAdmin: boolean): Promise<User>;
+  getAllUsers(): Promise<User[]>;
 
   // User operations
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByGoogleId(googleId: string): Promise<User | undefined>;
+  updateUserGoogleId(userId: string, googleId: string): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
 
   // Review operations
@@ -118,9 +142,59 @@ export class DatabaseStorage implements IStorage {
     return newOrder;
   }
 
+  async createOrderWithItems(order: InsertOrder, items: InsertOrderItem[]): Promise<Order> {
+    return await db.transaction(async (tx) => {
+      const [newOrder] = await tx.insert(orders).values(order).returning();
+      
+      if (items.length > 0) {
+        const orderItemsWithOrderId = items.map(item => ({
+          ...item,
+          orderId: newOrder.id
+        }));
+        await tx.insert(orderItems).values(orderItemsWithOrderId);
+      }
+
+      // Update user stats if order has userId
+      if (order.userId) {
+        await tx
+          .update(users)
+          .set({
+            totalSpent: sql`${users.totalSpent} + ${order.totalAmount}`,
+            orderCount: sql`${users.orderCount} + 1`,
+            updatedAt: new Date()
+          })
+          .where(eq(users.id, order.userId));
+      }
+
+      return newOrder;
+    });
+  }
+
   async getOrder(id: string): Promise<Order | undefined> {
     const [order] = await db.select().from(orders).where(eq(orders.id, id));
     return order || undefined;
+  }
+
+  async getOrdersByUser(userId: string): Promise<Order[]> {
+    return await db.select().from(orders).where(eq(orders.userId, userId)).orderBy(desc(orders.createdAt));
+  }
+
+  async getAllOrders(): Promise<Order[]> {
+    return await db.select().from(orders).orderBy(desc(orders.createdAt));
+  }
+
+  async updateOrderStatus(id: string, status: string): Promise<Order | undefined> {
+    const [updatedOrder] = await db
+      .update(orders)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(orders.id, id))
+      .returning();
+    return updatedOrder || undefined;
+  }
+
+  // Order items operations
+  async getOrderItems(orderId: string): Promise<OrderItem[]> {
+    return await db.select().from(orderItems).where(eq(orderItems.orderId, orderId));
   }
 
   // User operations
@@ -132,6 +206,20 @@ export class DatabaseStorage implements IStorage {
   async getUserByEmail(email: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.email, email));
     return user || undefined;
+  }
+
+  async getUserByGoogleId(googleId: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.googleId, googleId));
+    return user || undefined;
+  }
+
+  async updateUserGoogleId(userId: string, googleId: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ googleId, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
@@ -184,6 +272,67 @@ export class DatabaseStorage implements IStorage {
       .from(reviews)
       .where(eq(reviews.userId, userId))
       .orderBy(desc(reviews.createdAt));
+  }
+
+  // Admin operations
+  async isUserAdmin(userId: string): Promise<boolean> {
+    const [user] = await db.select({ isAdmin: users.isAdmin }).from(users).where(eq(users.id, userId));
+    return user?.isAdmin || false;
+  }
+
+  async addToAdminWhitelist(admin: InsertAdminWhitelist): Promise<AdminWhitelist> {
+    const [newAdmin] = await db.insert(adminWhitelist).values(admin).returning();
+    
+    // Update user admin status if they exist
+    await db
+      .update(users)
+      .set({ isAdmin: true, updatedAt: new Date() })
+      .where(eq(users.email, admin.email));
+    
+    return newAdmin;
+  }
+
+  async removeFromAdminWhitelist(email: string): Promise<boolean> {
+    const result = await db.delete(adminWhitelist).where(eq(adminWhitelist.email, email));
+    
+    // Update user admin status
+    await db
+      .update(users)
+      .set({ isAdmin: false, updatedAt: new Date() })
+      .where(eq(users.email, email));
+    
+    return (result.rowCount || 0) > 0;
+  }
+
+  async getAdminWhitelist(): Promise<AdminWhitelist[]> {
+    return await db.select().from(adminWhitelist).orderBy(desc(adminWhitelist.createdAt));
+  }
+
+  async getUserStats(): Promise<{ totalUsers: number; totalOrders: number; totalRevenue: string }> {
+    const [userCount] = await db.select({ count: sql<number>`count(*)` }).from(users);
+    const [orderCount] = await db.select({ count: sql<number>`count(*)` }).from(orders);
+    const [revenueSum] = await db.select({ 
+      total: sql<string>`coalesce(sum(${orders.totalAmount}), 0)` 
+    }).from(orders).where(eq(orders.status, 'completed'));
+
+    return {
+      totalUsers: userCount.count,
+      totalOrders: orderCount.count,
+      totalRevenue: revenueSum.total || '0'
+    };
+  }
+
+  async updateUserAdminStatus(userId: string, isAdmin: boolean): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ isAdmin, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users).orderBy(desc(users.createdAt));
   }
 }
 

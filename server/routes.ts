@@ -1,19 +1,24 @@
 import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertCartItemSchema, insertOrderSchema, insertReviewSchema } from "@shared/schema";
+import { insertCartItemSchema, insertOrderSchema, insertReviewSchema, insertAdminWhitelistSchema } from "@shared/schema";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupGoogleAuth } from "./googleAuth";
+import { setupEmailAuth } from "./emailAuth";
 import { randomUUID } from "crypto";
 
 declare module 'express-session' {
   interface SessionData {
-    id: string;
+    id?: string;
+    userId?: string;
   }
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup authentication
+  // Setup authentication systems
   await setupAuth(app);
+  setupGoogleAuth(app);
+  setupEmailAuth(app);
 
   // Get session ID or create one
   function getSessionId(req: Request): string {
@@ -196,11 +201,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  // Auth routes - support both session and Replit auth
+  app.get('/api/auth/user', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      let userId: string | undefined;
+      
+      // Check for session-based auth first (email/Google)
+      if (req.session.userId) {
+        userId = req.session.userId;
+      }
+      // Check for Replit auth
+      else if (req.isAuthenticated() && req.user?.claims?.sub) {
+        userId = req.user.claims.sub;
+      }
+      
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
       const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -276,6 +299,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user reviews:", error);
       res.status(500).json({ message: "Failed to fetch user reviews" });
+    }
+  });
+
+  // Admin routes - require admin authentication
+  const isAdmin = async (req: any, res: any, next: any) => {
+    try {
+      let userId: string | undefined;
+      
+      // Check for session-based auth first (email/Google)
+      if (req.session.userId) {
+        userId = req.session.userId;
+      }
+      // Check for Replit auth
+      else if (req.isAuthenticated() && req.user?.claims?.sub) {
+        userId = req.user.claims.sub;
+      }
+      
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const isUserAdmin = await storage.isUserAdmin(userId);
+      if (!isUserAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      next();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to verify admin status" });
+    }
+  };
+
+  app.get('/api/admin/stats', isAdmin, async (req, res) => {
+    try {
+      const stats = await storage.getUserStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching admin stats:", error);
+      res.status(500).json({ message: "Failed to fetch admin stats" });
+    }
+  });
+
+  app.get('/api/admin/orders', isAdmin, async (req, res) => {
+    try {
+      const orders = await storage.getAllOrders();
+      res.json(orders);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      res.status(500).json({ message: "Failed to fetch orders" });
+    }
+  });
+
+  app.get('/api/admin/users', isAdmin, async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.get('/api/admin/whitelist', isAdmin, async (req, res) => {
+    try {
+      const whitelist = await storage.getAdminWhitelist();
+      res.json(whitelist);
+    } catch (error) {
+      console.error("Error fetching admin whitelist:", error);
+      res.status(500).json({ message: "Failed to fetch admin whitelist" });
+    }
+  });
+
+  app.post('/api/admin/whitelist', isAdmin, async (req: any, res) => {
+    try {
+      const adminData = insertAdminWhitelistSchema.parse(req.body);
+      const admin = await storage.addToAdminWhitelist(adminData);
+      res.json(admin);
+    } catch (error) {
+      console.error("Error adding admin:", error);
+      res.status(400).json({ 
+        message: "Failed to add admin",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.delete('/api/admin/whitelist/:email', isAdmin, async (req, res) => {
+    try {
+      const email = decodeURIComponent(req.params.email);
+      const success = await storage.removeFromAdminWhitelist(email);
+      if (!success) {
+        return res.status(404).json({ message: "Admin not found" });
+      }
+      res.json({ message: "Admin removed successfully" });
+    } catch (error) {
+      console.error("Error removing admin:", error);
+      res.status(500).json({ message: "Failed to remove admin" });
+    }
+  });
+
+  app.put('/api/admin/orders/:id/status', isAdmin, async (req, res) => {
+    try {
+      const { status } = req.body;
+      const updatedOrder = await storage.updateOrderStatus(req.params.id, status);
+      if (!updatedOrder) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+      res.json(updatedOrder);
+    } catch (error) {
+      console.error("Error updating order status:", error);
+      res.status(500).json({ message: "Failed to update order status" });
     }
   });
 

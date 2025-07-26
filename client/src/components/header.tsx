@@ -1,13 +1,50 @@
 import { useState } from "react";
-import { Search, ShoppingCart, Menu, X } from "lucide-react";
+import { Search, ShoppingCart, Menu, X, User, LogOut, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/hooks/use-cart";
+import { useAuth } from "@/hooks/useAuth";
+import { Link, useLocation } from "wouter";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { itemCount, setIsOpen } = useCart();
+  const { user, isAuthenticated, isLoading } = useAuth();
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Logout failed");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Logged out successfully",
+        description: "Come back soon!",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      setLocation("/");
+    },
+    onError: (error) => {
+      toast({
+        title: "Logout failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -79,6 +116,63 @@ export default function Header() {
                 </span>
               )}
             </Button>
+
+            {/* Authentication buttons */}
+            {!isLoading && (
+              <>
+                {isAuthenticated && user ? (
+                  <div className="flex items-center space-x-2">
+                    <span className="text-minecraft-green text-sm hidden md:inline">
+                      Welcome, {user.firstName || user.email}!
+                    </span>
+                    {user.isAdmin && (
+                      <Link href="/admin">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500 hover:text-dark-slate"
+                        >
+                          <Shield className="h-4 w-4 mr-1" />
+                          <span className="hidden sm:inline">Admin</span>
+                        </Button>
+                      </Link>
+                    )}
+                    <Button
+                      onClick={() => logoutMutation.mutate()}
+                      variant="outline"
+                      size="sm"
+                      className="border-minecraft-green/30 text-minecraft-green hover:bg-minecraft-green hover:text-dark-slate"
+                      disabled={logoutMutation.isPending}
+                    >
+                      <LogOut className="h-4 w-4 mr-1" />
+                      <span className="hidden sm:inline">Logout</span>
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2">
+                    <Link href="/login">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-minecraft-green/30 text-minecraft-green hover:bg-minecraft-green hover:text-dark-slate"
+                      >
+                        <User className="h-4 w-4 mr-1" />
+                        <span className="hidden sm:inline">Login</span>
+                      </Button>
+                    </Link>
+                    <Link href="/register">
+                      <Button
+                        size="sm"
+                        className="bg-minecraft-green hover:bg-minecraft-dark-green text-dark-slate"
+                      >
+                        <span className="hidden sm:inline">Sign Up</span>
+                        <span className="sm:hidden">+</span>
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </>
+            )}
 
             <Button
               variant="ghost"

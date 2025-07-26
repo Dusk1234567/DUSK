@@ -29,10 +29,37 @@ export const cartItems = pgTable("cart_items", {
 
 export const orders = pgTable("orders", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  sessionId: text("session_id").notNull(),
+  sessionId: text("session_id"),
+  userId: varchar("user_id"), // Link to authenticated users
   totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
   status: varchar("status", { length: 50 }).notNull().default("pending"),
-  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
+  playerName: varchar("player_name"), // Minecraft username
+  email: varchar("email"), // Contact email
+  paymentMethod: varchar("payment_method").default("pending"),
+  transactionId: varchar("transaction_id"),
+  items: jsonb("items").notNull(), // Store order items as JSON
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Admin whitelist table
+export const adminWhitelist = pgTable("admin_whitelist", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: varchar("email").unique().notNull(),
+  role: varchar("role", { length: 50 }).notNull().default("admin"), // admin, moderator
+  addedBy: varchar("added_by"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Order items table for detailed tracking
+export const orderItems = pgTable("order_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  orderId: varchar("order_id").notNull(),
+  productId: varchar("product_id").notNull(),
+  productName: text("product_name").notNull(),
+  quantity: integer("quantity").notNull(),
+  unitPrice: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
+  totalPrice: decimal("total_price", { precision: 10, scale: 2 }).notNull(),
 });
 
 // Session storage table for authentication
@@ -49,10 +76,16 @@ export const sessions = pgTable(
 // User table for authentication
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  email: varchar("email").unique().notNull(),
+  email: varchar("email").unique(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  passwordHash: varchar("password_hash"), // For email/password auth
+  googleId: varchar("google_id").unique(), // For Google OAuth
+  minecraftUsername: varchar("minecraft_username"), // Minecraft player name
+  isAdmin: boolean("is_admin").default(false),
+  totalSpent: decimal("total_spent", { precision: 10, scale: 2 }).default("0.00"),
+  orderCount: integer("order_count").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -70,6 +103,26 @@ export const reviews = pgTable("reviews", {
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   reviews: many(reviews),
+  orders: many(orders),
+}));
+
+export const ordersRelations = relations(orders, ({ one, many }) => ({
+  user: one(users, {
+    fields: [orders.userId],
+    references: [users.id],
+  }),
+  orderItems: many(orderItems),
+}));
+
+export const orderItemsRelations = relations(orderItems, ({ one }) => ({
+  order: one(orders, {
+    fields: [orderItems.orderId],
+    references: [orders.id],
+  }),
+  product: one(products, {
+    fields: [orderItems.productId],
+    references: [products.id],
+  }),
 }));
 
 export const reviewsRelations = relations(reviews, ({ one }) => ({
@@ -85,6 +138,14 @@ export const reviewsRelations = relations(reviews, ({ one }) => ({
 
 export const productsRelations = relations(products, ({ many }) => ({
   reviews: many(reviews),
+  orderItems: many(orderItems),
+}));
+
+export const adminWhitelistRelations = relations(adminWhitelist, ({ one }) => ({
+  addedByUser: one(users, {
+    fields: [adminWhitelist.addedBy],
+    references: [users.id],
+  }),
 }));
 
 export const insertProductSchema = createInsertSchema(products).omit({
@@ -96,6 +157,16 @@ export const insertCartItemSchema = createInsertSchema(cartItems).omit({
 });
 
 export const insertOrderSchema = createInsertSchema(orders).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertOrderItemSchema = createInsertSchema(orderItems).omit({
+  id: true,
+});
+
+export const insertAdminWhitelistSchema = createInsertSchema(adminWhitelist).omit({
   id: true,
   createdAt: true,
 });
@@ -119,6 +190,10 @@ export type InsertCartItem = z.infer<typeof insertCartItemSchema>;
 export type CartItem = typeof cartItems.$inferSelect;
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
 export type Order = typeof orders.$inferSelect;
+export type InsertOrderItem = z.infer<typeof insertOrderItemSchema>;
+export type OrderItem = typeof orderItems.$inferSelect;
+export type InsertAdminWhitelist = z.infer<typeof insertAdminWhitelistSchema>;
+export type AdminWhitelist = typeof adminWhitelist.$inferSelect;
 export type UpsertUser = z.infer<typeof upsertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertReview = z.infer<typeof insertReviewSchema>;
