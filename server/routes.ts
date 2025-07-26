@@ -1,12 +1,18 @@
-import type { Express } from "express";
+import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertCartItemSchema, insertOrderSchema } from "@shared/schema";
 import { randomUUID } from "crypto";
 
+declare module 'express-session' {
+  interface SessionData {
+    id: string;
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Get session ID or create one
-  function getSessionId(req: any): string {
+  function getSessionId(req: Request): string {
     if (!req.session.id) {
       req.session.id = randomUUID();
     }
@@ -69,10 +75,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/cart", async (req, res) => {
     try {
       const sessionId = getSessionId(req);
+      console.log("Session ID:", sessionId);
+      console.log("Request body:", req.body);
+      
       const cartItemData = insertCartItemSchema.parse({
         ...req.body,
         sessionId
       });
+      console.log("Parsed cart item data:", cartItemData);
 
       const cartItem = await storage.addToCart(cartItemData);
       const product = await storage.getProductById(cartItem.productId);
@@ -82,7 +92,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         product
       });
     } catch (error) {
-      res.status(400).json({ message: "Failed to add item to cart" });
+      console.error("Cart error:", error);
+      res.status(400).json({ 
+        message: "Failed to add item to cart",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 
