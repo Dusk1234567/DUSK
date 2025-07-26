@@ -45,7 +45,12 @@ export default function Hero() {
           <Button
             onClick={scrollToProducts}
             variant="outline"
-            className="border-2 border-neon-cyan text-neon-cyan hover:bg-neon-cyan hover:text-dark-slate px-8 py-4 text-lg font-bold transition-all duration-300 hover-lift animate-scale-in stagger-2 click-effect"
+            className="border-2 border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-slate-900 px-8 py-4 text-lg font-bold transition-all duration-300 hover-lift animate-scale-in stagger-2 click-effect shadow-lg shadow-cyan-400/20 hover:shadow-cyan-400/40"
+            style={{
+              borderColor: 'var(--neon-cyan)',
+              color: 'var(--neon-cyan)',
+              boxShadow: '0 0 20px rgba(0, 255, 255, 0.3)'
+            }}
           >
             <Coins className="h-5 w-5 mr-2 hover-rotate transition-transform duration-300" />
             Buy Coins
