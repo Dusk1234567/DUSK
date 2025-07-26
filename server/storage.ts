@@ -16,7 +16,7 @@ import {
   type InsertReview,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 
 export interface IStorage {
   // Product operations
@@ -77,8 +77,7 @@ export class DatabaseStorage implements IStorage {
     const [existingItem] = await db
       .select()
       .from(cartItems)
-      .where(eq(cartItems.sessionId, cartItem.sessionId))
-      .where(eq(cartItems.productId, cartItem.productId));
+      .where(and(eq(cartItems.sessionId, cartItem.sessionId), eq(cartItems.productId, cartItem.productId)));
 
     if (existingItem) {
       // Update quantity
@@ -106,7 +105,7 @@ export class DatabaseStorage implements IStorage {
 
   async removeFromCart(id: string): Promise<boolean> {
     const result = await db.delete(cartItems).where(eq(cartItems.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   async clearCart(sessionId: string): Promise<void> {
