@@ -148,6 +148,8 @@ Preferred communication style: Simple, everyday language.
   - Created detailed EMAIL_SETUP.md guide with Gmail App Password instructions
   - Email system gracefully handles missing credentials and provides detailed logging
   - Professional branded emails include order details, tracking links, and responsive design
+  - Fixed data type issues preventing email delivery (.toFixed() errors resolved)
+  - Fixed unique order ID generation to prevent duplicate IDs on server restarts
 
 - **July 27, 2025**: Added comprehensive order management system
   - Created separate order lookup page requiring email verification for security

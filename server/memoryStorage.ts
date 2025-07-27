@@ -34,7 +34,10 @@ class MemoryStorage implements IStorage {
   private idCounter = 1;
 
   private generateId(): string {
-    return (this.idCounter++).toString();
+    // Use timestamp + counter for unique IDs that don't repeat on server restart
+    const timestamp = Date.now();
+    const id = `${timestamp}_${this.idCounter++}`;
+    return id;
   }
 
   async getProducts(): Promise<IProduct[]> {
