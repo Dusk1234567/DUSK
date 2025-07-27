@@ -1,13 +1,13 @@
 import {
-  Product,
-  CartItem,
-  Order,
-  OrderItem,
-  AdminWhitelist,
-  User,
-  Review,
-  WhitelistRequest,
-  PaymentConfirmation,
+  products,
+  cartItems,
+  orders,
+  orderItems,
+  adminWhitelist,
+  users,
+  reviews,
+  whitelistRequests,
+  paymentConfirmations,
   type InsertProduct,
   type InsertCartItem,
   type InsertOrder,
@@ -27,7 +27,8 @@ import {
   type IWhitelistRequest,
   type IPaymentConfirmation,
 } from "@shared/schema";
-import { connectToDatabase } from "./db";
+import { connectToDatabase, db } from "./db";
+import { eq, desc, sum } from "drizzle-orm";
 
 export interface IStorage {
   // Product operations
@@ -98,130 +99,129 @@ export class DatabaseStorage implements IStorage {
   // Product operations
   async getProducts(): Promise<IProduct[]> {
     await connectToDatabase();
-    return await Product.find().lean();
+    return await db.select().from(products);
   }
 
   async getProductById(id: string): Promise<IProduct | undefined> {
     await connectToDatabase();
-    const product = await Product.findById(id).lean();
-    return product || undefined;
+    const result = await db.select().from(products).where(eq(products.id, parseInt(id)));
+    return result[0] || undefined;
   }
 
   async getProductsByCategory(category: string): Promise<IProduct[]> {
     await connectToDatabase();
-    return await Product.find({ category }).lean();
+    return await db.select().from(products).where(eq(products.category, category));
   }
 
   async createProduct(product: InsertProduct): Promise<IProduct> {
     await connectToDatabase();
-    const newProduct = new Product(product);
-    await newProduct.save();
-    return newProduct.toObject();
+    const result = await db.insert(products).values(product).returning();
+    return result[0];
   }
 
   // Cart operations
   async getCartItems(sessionId: string): Promise<ICartItem[]> {
     await connectToDatabase();
-    return await CartItem.find({ sessionId }).lean();
+    return await db.select().from(cartItems).where(eq(cartItems.sessionId, sessionId));
   }
 
   async addToCart(cartItem: InsertCartItem): Promise<ICartItem> {
     await connectToDatabase();
     // Check if item already exists
-    const existingItem = await CartItem.findOne({
-      sessionId: cartItem.sessionId,
-      productId: cartItem.productId
-    });
+    const existingItems = await db.select().from(cartItems)
+      .where(eq(cartItems.sessionId, cartItem.sessionId))
+      .where(eq(cartItems.productId, cartItem.productId));
 
-    if (existingItem) {
+    if (existingItems.length > 0) {
       // Update quantity
-      existingItem.quantity += cartItem.quantity;
-      await existingItem.save();
-      return existingItem.toObject();
+      const existingItem = existingItems[0];
+      const updatedItems = await db.update(cartItems)
+        .set({ quantity: existingItem.quantity + cartItem.quantity })
+        .where(eq(cartItems.id, existingItem.id))
+        .returning();
+      return updatedItems[0];
     } else {
       // Create new cart item
-      const newCartItem = new CartItem(cartItem);
-      await newCartItem.save();
-      return newCartItem.toObject();
+      const newItems = await db.insert(cartItems).values(cartItem).returning();
+      return newItems[0];
     }
   }
 
   async updateCartItem(id: string, quantity: number): Promise<ICartItem | undefined> {
     await connectToDatabase();
-    const cartItem = await CartItem.findByIdAndUpdate(
-      id,
-      { quantity },
-      { new: true }
-    );
-    return cartItem?.toObject();
+    const updatedItems = await db.update(cartItems)
+      .set({ quantity })
+      .where(eq(cartItems.id, parseInt(id)))
+      .returning();
+    return updatedItems[0] || undefined;
   }
 
   async removeFromCart(id: string): Promise<boolean> {
     await connectToDatabase();
-    const result = await CartItem.findByIdAndDelete(id);
-    return !!result;
+    const result = await db.delete(cartItems).where(eq(cartItems.id, parseInt(id)));
+    return result.rowCount > 0;
   }
 
   async clearCart(sessionId: string): Promise<void> {
     await connectToDatabase();
-    await CartItem.deleteMany({ sessionId });
+    await db.delete(cartItems).where(eq(cartItems.sessionId, sessionId));
   }
 
   // Order operations
   async createOrder(order: InsertOrder): Promise<IOrder> {
     await connectToDatabase();
-    const newOrder = new Order(order);
-    await newOrder.save();
-    return newOrder.toObject();
+    const newOrders = await db.insert(orders).values(order).returning();
+    return newOrders[0];
   }
 
   async createOrderWithItems(order: InsertOrder, items: InsertOrderItem[]): Promise<IOrder> {
     await connectToDatabase();
     // Create order first
-    const newOrder = new Order(order);
-    await newOrder.save();
+    const newOrders = await db.insert(orders).values(order).returning();
+    const newOrder = newOrders[0];
 
     // Create order items
     const orderItemsWithOrderId = items.map(item => ({
       ...item,
-      orderId: newOrder._id.toString()
+      orderId: newOrder.id
     }));
 
-    await OrderItem.insertMany(orderItemsWithOrderId);
+    await db.insert(orderItems).values(orderItemsWithOrderId);
 
-    return newOrder.toObject();
+    return newOrder;
   }
 
   async getOrder(id: string): Promise<IOrder | undefined> {
     await connectToDatabase();
-    const order = await Order.findById(id).lean();
-    return order || undefined;
+    const result = await db.select().from(orders).where(eq(orders.id, parseInt(id)));
+    return result[0] || undefined;
   }
 
   async getOrdersByUser(userId: string): Promise<IOrder[]> {
     await connectToDatabase();
-    return await Order.find({ userId }).sort({ createdAt: -1 }).lean();
+    return await db.select().from(orders)
+      .where(eq(orders.userId, parseInt(userId)))
+      .orderBy(desc(orders.createdAt));
   }
 
   async getAllOrders(): Promise<IOrder[]> {
     await connectToDatabase();
-    return await Order.find().sort({ createdAt: -1 }).lean();
+    return await db.select().from(orders).orderBy(desc(orders.createdAt));
   }
 
   async updateOrderStatus(id: string, status: string): Promise<IOrder | undefined> {
     await connectToDatabase();
-    const order = await Order.findByIdAndUpdate(
-      id,
-      { status, updatedAt: new Date() },
-      { new: true }
-    );
-    return order?.toObject();
+    const updatedOrders = await db.update(orders)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(orders.id, parseInt(id)))
+      .returning();
+    return updatedOrders[0] || undefined;
   }
 
   // Order items operations
   async getOrderItems(orderId: string): Promise<IOrderItem[]> {
     await connectToDatabase();
-    return await OrderItem.find({ orderId }).lean();
+    return await db.select().from(orderItems).where(eq(orderItems.orderId, parseInt(orderId)));
   }
 
   // Admin operations

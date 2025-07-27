@@ -5,8 +5,10 @@ import passport from "passport";
 import session from "express-session";
 import type { Express, RequestHandler } from "express";
 import memoize from "memoizee";
-import MongoStore from "connect-mongo";
+import MemoryStore from "memorystore";
 import { storage } from "./storage";
+
+const MemoryStoreSession = MemoryStore(session);
 
 if (!process.env.REPLIT_DOMAINS) {
   throw new Error("Environment variable REPLIT_DOMAINS not provided");
@@ -24,12 +26,10 @@ const getOidcConfig = memoize(
 
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
-  const mongoUrl = process.env.MONGODB_URL || 'mongodb://localhost:27017/lifesteal-shop';
   
-  const sessionStore = MongoStore.create({
-    mongoUrl: mongoUrl,
-    ttl: sessionTtl / 1000, // convert to seconds
-    collectionName: "sessions",
+  // Use memory store for development, can be upgraded to PostgreSQL session store if needed
+  const sessionStore = new MemoryStoreSession({
+    checkPeriod: 86400000, // prune expired entries every 24h
   });
   
   return session({
@@ -39,7 +39,7 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === 'production',
       maxAge: sessionTtl,
     },
   });
@@ -59,7 +59,6 @@ async function upsertUser(
   claims: any,
 ) {
   await storage.upsertUser({
-    id: claims["sub"],
     email: claims["email"],
     firstName: claims["first_name"],
     lastName: claims["last_name"],
