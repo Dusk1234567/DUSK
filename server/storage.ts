@@ -223,15 +223,30 @@ class MongoStorage implements IStorage {
   }
 
   async getProductById(id: string): Promise<IProduct | undefined> {
-    await connectToDatabase();
-    const product = await ProductModel.findById(id);
-    return product ? toPlainObject(product) : undefined;
+    try {
+      await connectToDatabase();
+      // Check if ID is a valid MongoDB ObjectId (24 character hex string)
+      if (!/^[0-9a-fA-F]{24}$/.test(id)) {
+        console.log('Invalid ObjectId format, using memory storage');
+        return memoryStorage.getProductById(id);
+      }
+      const product = await ProductModel.findById(id);
+      return product ? toPlainObject(product) : undefined;
+    } catch (error) {
+      console.log('MongoDB unavailable, using memory storage');
+      return memoryStorage.getProductById(id);
+    }
   }
 
   async getProductsByCategory(category: string): Promise<IProduct[]> {
-    await connectToDatabase();
-    const products = await ProductModel.find({ category });
-    return products.map(toPlainObject);
+    try {
+      await connectToDatabase();
+      const products = await ProductModel.find({ category });
+      return products.map(toPlainObject);
+    } catch (error) {
+      console.log('MongoDB unavailable, using memory storage');
+      return memoryStorage.getProductsByCategory(category);
+    }
   }
 
   async createProduct(product: InsertProduct): Promise<IProduct> {
