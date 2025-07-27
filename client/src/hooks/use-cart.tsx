@@ -25,7 +25,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addToCartMutation = useMutation({
     mutationFn: async ({ productId, quantity = 1 }: { productId: string; quantity?: number }) => {
-      return await apiRequest("/api/cart", "POST", { productId, quantity });
+      const response = await apiRequest("POST", "/api/cart", { productId, quantity });
+      return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
@@ -45,7 +46,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const updateQuantityMutation = useMutation({
     mutationFn: async ({ itemId, quantity }: { itemId: string; quantity: number }) => {
-      return await apiRequest(`/api/cart/${itemId}`, "PUT", { quantity });
+      const response = await apiRequest("PUT", `/api/cart/${itemId}`, { quantity });
+      return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
@@ -61,7 +63,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const removeItemMutation = useMutation({
     mutationFn: async (itemId: string) => {
-      return await apiRequest(`/api/cart/${itemId}`, "DELETE");
+      const response = await apiRequest("DELETE", `/api/cart/${itemId}`);
+      return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
