@@ -22,7 +22,12 @@ export default function Landing() {
             <Button
               onClick={() => window.location.href = "/register"}
               variant="outline"
-              className="border-minecraft-green text-minecraft-green hover:bg-minecraft-green hover:text-dark-slate transition-all duration-300"
+              className="border-2 transition-all duration-300"
+              style={{
+                borderColor: '#22c55e',
+                color: '#22c55e',
+                backgroundColor: 'transparent'
+              }}
             >
               Sign Up
             </Button>
@@ -58,11 +63,12 @@ export default function Landing() {
             <Button
               onClick={() => window.location.href = "/register"}
               variant="outline"
-              className="border-2 border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-slate-900 px-8 py-4 text-lg font-bold transition-all duration-300 hover-lift shadow-lg shadow-cyan-400/20 hover:shadow-cyan-400/40"
+              className="border-2 px-8 py-4 text-lg font-bold transition-all duration-300 hover-lift"
               style={{
-                borderColor: 'var(--neon-cyan)',
-                color: 'var(--neon-cyan)',
-                boxShadow: '0 0 20px rgba(0, 255, 255, 0.3)'
+                borderColor: '#06b6d4',
+                color: '#06b6d4',
+                backgroundColor: 'transparent',
+                boxShadow: '0 0 20px rgba(6, 182, 212, 0.3)'
               }}
             >
               <Coins className="h-5 w-5 mr-2" />
