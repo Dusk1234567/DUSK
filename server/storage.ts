@@ -766,8 +766,5 @@ export class MemStorage implements IStorage {
   }
 }
 
-// Export the storage instance based on environment
-// For now, we'll use in-memory storage in development since MongoDB setup is complex in Replit
-export const storage: IStorage = process.env.NODE_ENV === 'development'
-  ? new MemStorage()
-  : new DatabaseStorage();
+// Export the storage instance - use PostgreSQL database storage
+export const storage: IStorage = new DatabaseStorage();

@@ -3,7 +3,7 @@ import { Pool } from "pg";
 import * as schema from "@shared/schema";
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: process.env.DATABASE_URL || "postgresql://neondb_owner:npg_ofwsHOBMg96l@ep-dawn-forest-aei86qgz.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require",
 });
 
 export const db = drizzle(pool, { schema });
