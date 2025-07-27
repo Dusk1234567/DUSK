@@ -368,38 +368,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { email, orderId } = req.query;
       
-      console.log('Order lookup request:', { email, orderId });
-      
       if (!email || !orderId) {
         return res.status(400).json({ message: "Email and Order ID are required" });
       }
       
       const order = await storage.getOrder(orderId as string);
-      console.log('Found order:', order ? `Order ${order.id} for ${order.email}` : 'No order found');
       
       if (!order) {
-        // In development with memory storage, orders are lost on server restart
-        const allOrders = await storage.getAllOrders();
-        console.log('Total orders in storage:', allOrders.length);
-        if (allOrders.length === 0) {
-          return res.status(404).json({ 
-            message: "Order not found", 
-            note: "Memory storage mode: Orders are cleared on server restart. Please place a new order to test tracking."
-          });
-        }
         return res.status(404).json({ message: "Order not found" });
       }
       
-      // Verify email matches the order
-      if (order.email !== email) {
-        console.log('Email mismatch:', { provided: email, orderEmail: order.email });
+      // Verify email matches the order (case insensitive)
+      if (order.email.toLowerCase() !== (email as string).toLowerCase()) {
         return res.status(404).json({ message: "Order not found" });
       }
       
       // Parse items JSON string back to array for frontend
       const parsedOrder = {
         ...order,
-        items: order.items ? JSON.parse(order.items) : []
+        items: typeof order.items === 'string' ? JSON.parse(order.items) : order.items || []
       };
       
       res.json(parsedOrder);
