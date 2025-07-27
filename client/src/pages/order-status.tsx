@@ -41,7 +41,7 @@ export default function OrderStatusPage() {
   const { toast } = useToast();
 
   const { data: order, isLoading, error, refetch } = useQuery({
-    queryKey: ["/api/orders", orderId],
+    queryKey: ["/api/orders/public", orderId],
     enabled: false, // Only run when manually triggered
   });
 
