@@ -718,54 +718,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     });
 
-    // Debug endpoint to check email configuration
-    app.get("/api/debug/email", async (req, res) => {
-      try {
-        res.json({
-          emailPasswordExists: !!process.env.EMAIL_APP_PASSWORD,
-          emailPasswordLength: process.env.EMAIL_APP_PASSWORD ? process.env.EMAIL_APP_PASSWORD.length : 0,
-          envKeys: Object.keys(process.env).filter(key => key.includes('EMAIL')),
-          nodeEnv: process.env.NODE_ENV
-        });
-      } catch (error) {
-        console.error("Email debug error:", error);
-        res.json({ message: "Email debug error" });
-      }
-    });
 
-    // Test email endpoint
-    app.post("/api/debug/test-email", async (req, res) => {
-      try {
-        const { email } = req.body;
-        if (!email) {
-          return res.status(400).json({ message: "Email is required" });
-        }
-
-        const result = await sendOrderConfirmationEmail(
-          email,
-          "TEST-ORDER-123",
-          {
-            playerName: "TestPlayer",
-            totalAmount: 29.99,
-            items: [{
-              productName: "Test Product",
-              quantity: 1,
-              unitPrice: 29.99,
-              totalPrice: 29.99
-            }],
-            status: "pending"
-          }
-        );
-
-        res.json({
-          message: "Test email attempt completed",
-          result
-        });
-      } catch (error) {
-        console.error("Test email error:", error);
-        res.status(500).json({ message: "Test email failed", error: error.message });
-      }
-    });
   }
 
   // Auth routes - support both session and Replit auth
