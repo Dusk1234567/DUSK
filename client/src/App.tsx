@@ -11,6 +11,7 @@ import Login from "@/pages/login";
 import Register from "@/pages/register";
 import Admin from "@/pages/admin";
 import Whitelist from "@/pages/whitelist";
+import Cart from "@/pages/cart";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -22,6 +23,7 @@ function Router() {
       <Route path="/register" component={Register} />
       <Route path="/admin" component={Admin} />
       <Route path="/whitelist" component={Whitelist} />
+      <Route path="/cart" component={Cart} />
       <Route path="/" component={isAuthenticated ? Home : Landing} />
       <Route component={NotFound} />
     </Switch>

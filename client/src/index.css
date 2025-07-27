@@ -72,7 +72,7 @@
 
 @layer utilities {
   .minecraft-green {
-    color: var(--minecraft-green);
+    color: var(--minecraft-green) !important;
   }
   
   .bg-minecraft-green {

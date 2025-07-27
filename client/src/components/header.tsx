@@ -59,9 +59,9 @@ export default function Header() {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <div className="text-2xl font-bold minecraft-green animate-scale-in hover-glow transition-all duration-300 cursor-pointer">
-              <i className="fas fa-cube mr-2 animate-wiggle"></i>
-              LIFESTEAL
+            <div className="text-2xl font-bold text-green-500 animate-scale-in hover-glow transition-all duration-300 cursor-pointer">
+              <span className="text-green-400">⚔️</span>
+              <span className="ml-2 text-green-400 font-extrabold">LIFESTEAL</span>
             </div>
           </div>
           
@@ -79,7 +79,7 @@ export default function Header() {
               Products
             </button>
             <Link href="/whitelist">
-              <button className="hover:text-minecraft-green transition-all duration-300 hover-scale animate-slide-in-left stagger-3">
+              <button className="text-white hover:text-green-400 transition-all duration-300 hover-scale animate-slide-in-left stagger-3 font-medium">
                 Whitelist
               </button>
             </Link>
@@ -109,18 +109,17 @@ export default function Header() {
               <Search className="absolute left-3 top-3 h-4 w-4 text-minecraft-gray" />
             </div>
             
-            <Button
-              onClick={() => setIsOpen(true)}
-              className="relative bg-minecraft-green hover:bg-minecraft-dark-green text-dark-slate transition-all duration-300 hover-lift animate-slide-in-right stagger-5"
-            >
-              <ShoppingCart className="h-4 w-4 hover-rotate transition-transform duration-300" />
-              <span className="ml-2 hidden sm:inline">Cart</span>
-              {itemCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-neon-magenta text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-bounce-slow">
-                  {itemCount}
-                </span>
-              )}
-            </Button>
+            <Link href="/cart">
+              <Button className="relative bg-minecraft-green hover:bg-minecraft-dark-green text-dark-slate transition-all duration-300 hover-lift animate-slide-in-right stagger-5">
+                <ShoppingCart className="h-4 w-4 hover-rotate transition-transform duration-300" />
+                <span className="ml-2 hidden sm:inline">Cart</span>
+                {itemCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-neon-magenta text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-bounce-slow">
+                    {itemCount}
+                  </span>
+                )}
+              </Button>
+            </Link>
 
             {/* Authentication buttons */}
             {!isLoading && (
