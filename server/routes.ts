@@ -307,6 +307,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const order = await storage.getOrder(orderId as string);
       if (!order) {
+        // In development with memory storage, orders are lost on server restart
+        const allOrders = await storage.getAllOrders();
+        if (allOrders.length === 0) {
+          return res.status(404).json({ 
+            message: "Order not found", 
+            note: "Memory storage mode: Orders are cleared on server restart. Please place a new order to test tracking."
+          });
+        }
         return res.status(404).json({ message: "Order not found" });
       }
       
@@ -428,6 +436,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to submit payment confirmation" });
     }
   });
+
+  // Debug endpoint to see orders in memory (development only)
+  if (process.env.NODE_ENV === 'development') {
+    app.get("/api/debug/orders", async (req, res) => {
+      try {
+        const orders = await storage.getAllOrders();
+        res.json({
+          total: orders.length,
+          orders: orders.length > 0 ? orders.slice(0, 10).map(order => ({
+            id: order.id,
+            email: order.email,
+            playerName: order.playerName,
+            status: order.status,
+            totalAmount: order.totalAmount
+          })) : []
+        });
+      } catch (error) {
+        console.error("Debug endpoint error:", error);
+        res.json({ message: "Debug error", total: 0, orders: [] });
+      }
+    });
+  }
 
   // Auth routes - support both session and Replit auth
   app.get('/api/auth/user', async (req: any, res) => {
