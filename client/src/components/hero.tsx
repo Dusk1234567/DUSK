@@ -13,7 +13,7 @@ export default function Hero() {
     <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background with overlay */}
       <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-dark-slate/90 to-light-slate/90 z-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-dark-slate/90 to-light-slate/90 z-10 text-[#8f1f1f]"></div>
         <div className="w-full h-full relative">
           <img 
             src="https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&h=1080" 
@@ -22,7 +22,6 @@ export default function Hero() {
           />
         </div>
       </div>
-      
       <div className="relative z-20 text-center px-4 max-w-4xl mx-auto">
         <div className="animate-float">
           <h1 className="text-6xl md:text-8xl font-bold mb-6 bg-gradient-to-r from-minecraft-green to-neon-cyan bg-clip-text text-transparent animate-scale-in">
