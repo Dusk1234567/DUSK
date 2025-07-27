@@ -28,6 +28,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return req.session.id;
   }
 
+  // Unified authentication middleware that supports both session and Replit auth
+  const isAuthenticatedUser = async (req: any, res: any, next: any) => {
+    try {
+      let userId: string | undefined;
+      
+      // Check for session-based auth first (email/Google)
+      if (req.session?.userId) {
+        userId = req.session.userId;
+        req.userId = userId; // Set userId for easy access
+        return next();
+      }
+      // Check for Replit auth
+      else if (req.isAuthenticated && req.isAuthenticated() && req.user?.claims?.sub) {
+        userId = req.user.claims.sub;
+        req.userId = userId; // Set userId for easy access
+        return next();
+      }
+      
+      return res.status(401).json({ message: "Unauthorized" });
+    } catch (error) {
+      console.error("Authentication error:", error);
+      res.status(500).json({ message: "Authentication failed" });
+    }
+  };
+
   // Products routes
   app.get("/api/products", async (req, res) => {
     try {
@@ -276,9 +301,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/reviews', isAuthenticated, async (req: any, res) => {
+  app.post('/api/reviews', isAuthenticatedUser, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       const reviewData = insertReviewSchema.parse({
         ...req.body,
         userId
@@ -295,9 +320,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/products/:productId/reviews', isAuthenticated, async (req: any, res) => {
+  app.post('/api/products/:productId/reviews', isAuthenticatedUser, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       const reviewData = insertReviewSchema.parse({
         ...req.body,
         userId,
@@ -315,9 +340,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/user/reviews', isAuthenticated, async (req: any, res) => {
+  app.get('/api/user/reviews', isAuthenticatedUser, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.userId;
       const reviews = await storage.getReviewsByUser(userId);
       res.json(reviews);
     } catch (error) {

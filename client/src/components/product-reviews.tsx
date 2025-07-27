@@ -11,7 +11,7 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import { Review } from "@shared/schema";
 
 interface ProductReviewsProps {
-  productId: number;
+  productId: string;
   productName: string;
 }
 
@@ -195,12 +195,12 @@ export default function ProductReviews({ productId, productName }: ProductReview
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-white">
-                      {review.user?.firstName || "Anonymous"} {review.user?.lastName?.[0] || ""}
+                      Anonymous User
                     </span>
                     {renderStars(review.rating)}
                   </div>
                   <span className="text-xs text-gray-400">
-                    {new Date(review.createdAt).toLocaleDateString()}
+                    {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : 'Recently'}
                   </span>
                 </div>
               </div>
