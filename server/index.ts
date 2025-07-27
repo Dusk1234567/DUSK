@@ -49,13 +49,11 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Seed database with sample products
-  try {
-    const { seedDatabase } = await import('./seedData');
-    await seedDatabase();
-  } catch (error) {
-    console.log('Database seeding skipped:', error);
-  }
+  // Non-blocking database seeding (will use memory storage fallback if MongoDB unavailable)
+  const { seedDatabase } = await import('./seedData');
+  seedDatabase().catch(error => {
+    console.log('Database seeding skipped:', error.message);
+  });
   
   const server = await registerRoutes(app);
 

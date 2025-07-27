@@ -71,7 +71,7 @@ export function setupGoogleAuth(app: Express) {
         if (user) {
           console.log(`Google OAuth: Linking Google account to existing user`);
           // Link Google account to existing user
-          await storage.updateUserGoogleId(user.id, profile.id);
+          await storage.updateUserGoogleId(user.id!, profile.id);
           return done(null, user);
         }
       }
@@ -79,7 +79,6 @@ export function setupGoogleAuth(app: Express) {
       // Create new user
       console.log(`Google OAuth: Creating new user`);
       const newUser = await storage.upsertUser({
-        id: profile.id,
         email: email || '',
         firstName: profile.name?.givenName || '',
         lastName: profile.name?.familyName || '',

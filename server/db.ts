@@ -1,37 +1,30 @@
-import { drizzle } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
-import * as schema from "@shared/schema";
+import mongoose from 'mongoose';
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || "postgresql://neondb_owner:npg_ofwsHOBMg96l@ep-dawn-forest-aei86qgz.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require",
-});
-
-export const db = drizzle(pool, { schema });
+const MONGODB_URL = process.env.MONGODB_URL || 'mongodb://localhost:27017/DUSK';
 
 let isConnected = false;
 
 export async function connectToDatabase() {
   if (isConnected) {
-    return db;
+    return mongoose.connection;
   }
 
   try {
-    // Test the connection
-    await pool.query('SELECT 1');
+    await mongoose.connect(MONGODB_URL);
     isConnected = true;
-    console.log('Connected to PostgreSQL successfully');
-    return db;
+    console.log('Connected to MongoDB successfully');
+    return mongoose.connection;
   } catch (error) {
-    console.error('PostgreSQL connection error:', error);
-    throw new Error('Failed to connect to PostgreSQL database.');
+    console.error('MongoDB connection error:', error);
+    throw new Error('Failed to connect to MongoDB database.');
   }
 }
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
-  await pool.end();
-  console.log('PostgreSQL connection closed through app termination');
+  await mongoose.connection.close();
+  console.log('MongoDB connection closed through app termination');
   process.exit(0);
 });
 
-export { pool };
+export { mongoose };

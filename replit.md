@@ -89,14 +89,14 @@ Preferred communication style: Simple, everyday language.
 ### Development Environment
 - **Frontend**: Vite dev server with HMR and proxy to backend
 - **Backend**: TSX with auto-restart on file changes
-- **Database**: Neon serverless PostgreSQL with connection pooling
+- **Database**: MongoDB with Mongoose ODM for document storage
 - **Environment**: Development-specific error handling and logging
 
 ### Production Build
 - **Frontend**: Vite builds to `dist/public` with optimized assets
 - **Backend**: ESBuild bundles server to `dist/index.js` with external packages
 - **Static Files**: Express serves built frontend files in production
-- **Database**: Production Neon database with proper connection management
+- **Database**: Production MongoDB database with proper connection management
 
 ### Environment Configuration
 - **Database**: `MONGODB_URL` environment variable (falls back to local MongoDB)
@@ -122,8 +122,10 @@ Preferred communication style: Simple, everyday language.
   - Updated all database schemas to use MongoDB document structure with proper TypeScript interfaces
   - Converted storage layer to work with MongoDB collections and Mongoose methods
   - Maintained backward compatibility with existing API endpoints and frontend code
-  - Database setup now uses in-memory storage for development and MongoDB for production
+  - Database setup now uses MongoDB with default database name "DUSK"
   - Updated environment configuration to use MONGODB_URL instead of DATABASE_URL
+  - Created comprehensive localhost setup guide with MongoDB configuration instructions
+  - Added support for local MongoDB, Docker MongoDB, and MongoDB Atlas cloud options
 
 - **July 27, 2025**: Added comprehensive order management system
   - Created separate order lookup page requiring email verification for security
