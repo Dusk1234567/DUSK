@@ -80,12 +80,16 @@ const CouponSchema = new Schema({
   discountType: { type: String, enum: ['percentage', 'fixed'], required: true },
   discountValue: { type: Number, required: true },
   minimumOrderAmount: { type: Number, default: 0 },
+  maximumOrderAmount: { type: Number },
   maxUsages: { type: Number },
   currentUsages: { type: Number, default: 0 },
   validFrom: { type: Date, required: true },
   validUntil: { type: Date, required: true },
   isActive: { type: Boolean, default: true },
   description: { type: String },
+  applicableProducts: [{ type: String }], // Array of product IDs
+  applicableCategories: [{ type: String }], // Array of categories
+  excludedProducts: [{ type: String }], // Array of product IDs to exclude
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -226,6 +230,8 @@ export interface IStorage {
   getCouponByCode(code: string): Promise<ICoupon | undefined>;
   getAllCoupons(): Promise<ICoupon[]>;
   updateCouponUsage(code: string): Promise<ICoupon | undefined>;
+  updateCoupon(id: string, updates: Partial<ICoupon>): Promise<ICoupon | null>;
+  toggleCouponStatus(id: string): Promise<ICoupon | null>;
   deleteCoupon(id: string): Promise<boolean>;
 }
 
@@ -752,6 +758,39 @@ class MongoStorage implements IStorage {
     } catch (error) {
       console.log('MongoDB unavailable, using memory storage');
       return memoryStorage.updateCouponUsage(code);
+    }
+  }
+
+  async updateCoupon(id: string, updates: Partial<ICoupon>): Promise<ICoupon | null> {
+    try {
+      await connectToDatabase();
+      const updatedCoupon = await CouponModel.findByIdAndUpdate(
+        id,
+        { ...updates, updatedAt: new Date() },
+        { new: true }
+      );
+      return updatedCoupon ? toPlainObject(updatedCoupon) : null;
+    } catch (error) {
+      console.log('MongoDB unavailable, using memory storage');
+      return memoryStorage.updateCoupon(id, updates);
+    }
+  }
+
+  async toggleCouponStatus(id: string): Promise<ICoupon | null> {
+    try {
+      await connectToDatabase();
+      const coupon = await CouponModel.findById(id);
+      if (!coupon) return null;
+      
+      const updatedCoupon = await CouponModel.findByIdAndUpdate(
+        id,
+        { isActive: !coupon.isActive, updatedAt: new Date() },
+        { new: true }
+      );
+      return updatedCoupon ? toPlainObject(updatedCoupon) : null;
+    } catch (error) {
+      console.log('MongoDB unavailable, using memory storage');
+      return memoryStorage.toggleCouponStatus(id);
     }
   }
 

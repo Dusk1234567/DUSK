@@ -628,6 +628,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/admin/coupons/:id", isAuthenticatedUser, async (req: any, res) => {
+    try {
+      const userId = req.userId;
+      const isAdmin = await storage.isUserAdmin(userId);
+      
+      if (!isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const { id } = req.params;
+      const updatedCoupon = await storage.updateCoupon(id, req.body);
+      
+      if (updatedCoupon) {
+        res.json(updatedCoupon);
+      } else {
+        res.status(404).json({ message: "Coupon not found" });
+      }
+    } catch (error) {
+      console.error("Update coupon error:", error);
+      res.status(500).json({ message: "Failed to update coupon" });
+    }
+  });
+
+  app.patch("/api/admin/coupons/:id/toggle", isAuthenticatedUser, async (req: any, res) => {
+    try {
+      const userId = req.userId;
+      const isAdmin = await storage.isUserAdmin(userId);
+      
+      if (!isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const { id } = req.params;
+      const updatedCoupon = await storage.toggleCouponStatus(id);
+      
+      if (updatedCoupon) {
+        res.json(updatedCoupon);
+      } else {
+        res.status(404).json({ message: "Coupon not found" });
+      }
+    } catch (error) {
+      console.error("Toggle coupon error:", error);
+      res.status(500).json({ message: "Failed to toggle coupon status" });
+    }
+  });
+
   app.delete("/api/admin/coupons/:id", isAuthenticatedUser, async (req: any, res) => {
     try {
       const userId = req.userId;

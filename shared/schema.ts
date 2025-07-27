@@ -145,12 +145,16 @@ export interface ICoupon {
   discountType: 'percentage' | 'fixed';
   discountValue: number;
   minimumOrderAmount?: number;
+  maximumOrderAmount?: number;
   maxUsages?: number;
   currentUsages: number;
   validFrom: Date;
   validUntil: Date;
   isActive: boolean;
   description?: string;
+  applicableProducts?: string[]; // Array of product IDs
+  applicableCategories?: string[]; // Array of categories ('ranks', 'coins')
+  excludedProducts?: string[]; // Array of product IDs to exclude
   createdAt: Date;
   updatedAt: Date;
 }

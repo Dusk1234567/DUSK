@@ -397,6 +397,25 @@ class MemoryStorage implements IStorage {
   async deleteCoupon(id: string): Promise<boolean> {
     return this.coupons.delete(id);
   }
+
+  async updateCoupon(id: string, updates: Partial<ICoupon>): Promise<ICoupon | null> {
+    const coupon = this.coupons.get(id);
+    if (!coupon) return null;
+    
+    Object.assign(coupon, updates, { updatedAt: new Date() });
+    this.coupons.set(id, coupon);
+    return coupon;
+  }
+
+  async toggleCouponStatus(id: string): Promise<ICoupon | null> {
+    const coupon = this.coupons.get(id);
+    if (!coupon) return null;
+    
+    coupon.isActive = !coupon.isActive;
+    coupon.updatedAt = new Date();
+    this.coupons.set(id, coupon);
+    return coupon;
+  }
 }
 
 export const memoryStorage = new MemoryStorage();

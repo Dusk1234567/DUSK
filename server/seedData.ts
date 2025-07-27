@@ -127,7 +127,7 @@ export async function seedDatabase() {
   for (const product of productsToInsert) {
     await storage.createProduct(product);
   }
-  // Seed sample coupons
+  // Seed sample coupons with enhanced features
   const sampleCoupons = [
     {
       code: "SAVE20",
@@ -141,26 +141,40 @@ export async function seedDatabase() {
       description: "20% off all orders over $15"
     },
     {
-      code: "NEWBIE10",
-      discountType: "fixed" as const,
-      discountValue: 10,
-      minimumOrderAmount: 25,
+      code: "RANKSONLY",
+      discountType: "percentage" as const,
+      discountValue: 25,
+      minimumOrderAmount: 10,
+      maximumOrderAmount: 100,
       maxUsages: 50,
       validFrom: new Date(),
-      validUntil: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // 60 days from now
+      validUntil: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000), // 21 days from now
       isActive: true,
-      description: "Get $10 off orders over $25 - New player special!"
+      description: "25% off rank purchases only - Limited time!",
+      applicableCategories: ["ranks"]
     },
     {
-      code: "RANK15",
-      discountType: "percentage" as const,
-      discountValue: 15,
+      code: "COINSBONUS",
+      discountType: "fixed" as const,
+      discountValue: 5,
       minimumOrderAmount: 20,
-      maxUsages: 25,
+      maxUsages: 75,
       validFrom: new Date(),
-      validUntil: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
+      validUntil: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000), // 45 days from now
       isActive: true,
-      description: "15% off all rank purchases"
+      description: "Get $5 off coin packages",
+      applicableCategories: ["coins"]
+    },
+    {
+      code: "PREMIUM30",
+      discountType: "percentage" as const,
+      discountValue: 30,
+      minimumOrderAmount: 50,
+      maxUsages: 20,
+      validFrom: new Date(),
+      validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+      isActive: false, // Disabled by default to test toggle functionality
+      description: "30% off premium orders - VIP weekend special"
     }
   ];
 
