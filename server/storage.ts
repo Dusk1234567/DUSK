@@ -7,6 +7,7 @@ import {
   users,
   reviews,
   whitelistRequests,
+  paymentConfirmations,
   type Product,
   type InsertProduct,
   type CartItem,
@@ -23,6 +24,8 @@ import {
   type InsertReview,
   type WhitelistRequest,
   type InsertWhitelistRequest,
+  type PaymentConfirmation,
+  type InsertPaymentConfirmation,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql } from "drizzle-orm";
@@ -79,6 +82,12 @@ export interface IStorage {
   getWhitelistRequestsByUser(userId: string): Promise<WhitelistRequest[]>;
   updateWhitelistRequestStatus(id: string, status: string, reason?: string, processedBy?: string): Promise<WhitelistRequest | undefined>;
   getWhitelistRequestByUsername(username: string): Promise<WhitelistRequest | undefined>;
+
+  // Payment confirmation operations
+  createPaymentConfirmation(confirmation: InsertPaymentConfirmation): Promise<PaymentConfirmation>;
+  getPaymentConfirmationsByOrder(orderId: string): Promise<PaymentConfirmation[]>;
+  updatePaymentConfirmationStatus(id: string, status: string, reviewedBy?: string, reason?: string): Promise<PaymentConfirmation | undefined>;
+  getAllPaymentConfirmations(): Promise<PaymentConfirmation[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -385,6 +394,34 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(whitelistRequests.submittedAt))
       .limit(1);
     return request;
+  }
+
+  // Payment confirmation operations
+  async createPaymentConfirmation(confirmation: InsertPaymentConfirmation): Promise<PaymentConfirmation> {
+    const [newConfirmation] = await db.insert(paymentConfirmations).values(confirmation).returning();
+    return newConfirmation;
+  }
+
+  async getPaymentConfirmationsByOrder(orderId: string): Promise<PaymentConfirmation[]> {
+    return await db.select().from(paymentConfirmations).where(eq(paymentConfirmations.orderId, orderId));
+  }
+
+  async updatePaymentConfirmationStatus(id: string, status: string, reviewedBy?: string, reason?: string): Promise<PaymentConfirmation | undefined> {
+    const [updated] = await db
+      .update(paymentConfirmations)
+      .set({ 
+        status, 
+        reviewedBy,
+        rejectionReason: reason,
+        reviewedAt: new Date()
+      })
+      .where(eq(paymentConfirmations.id, id))
+      .returning();
+    return updated;
+  }
+
+  async getAllPaymentConfirmations(): Promise<PaymentConfirmation[]> {
+    return await db.select().from(paymentConfirmations).orderBy(desc(paymentConfirmations.submittedAt));
   }
 }
 

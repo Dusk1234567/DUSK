@@ -12,12 +12,15 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/use-cart";
+import QRPaymentModal from "@/components/qr-payment-modal";
 
 export default function Checkout() {
   const [playerName, setPlayerName] = useState("");
   const [email, setEmail] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
   
   const { items, totalAmount, itemCount, clearCart } = useCart();
   const { user, isAuthenticated } = useAuth();
@@ -65,12 +68,24 @@ export default function Checkout() {
       return await response.json();
     },
     onSuccess: (order) => {
-      toast({
-        title: "Order Created Successfully!",
-        description: `Order #${order.id.slice(0, 8)} has been created. You'll receive updates via email.`,
-      });
-      clearCart();
-      setLocation(`/order/${order.id}`);
+      setCurrentOrderId(order.id);
+      
+      if (paymentMethod === "online") {
+        // Show QR code modal for online payment
+        setShowQRModal(true);
+        toast({
+          title: "Order Created!",
+          description: "Please complete payment using the QR code.",
+        });
+      } else {
+        // For other payment methods, redirect to order page
+        toast({
+          title: "Order Created Successfully!",
+          description: `Order #${order.id.slice(0, 8)} has been created. You'll receive updates via email.`,
+        });
+        clearCart();
+        setLocation(`/order/${order.id}`);
+      }
     },
     onError: (error) => {
       toast({
@@ -83,6 +98,42 @@ export default function Checkout() {
       setIsProcessing(false);
     }
   });
+
+  const handleQRPaymentConfirm = async (screenshot: File) => {
+    if (!currentOrderId) return;
+
+    try {
+      // Create FormData to upload the screenshot
+      const formData = new FormData();
+      formData.append('screenshot', screenshot);
+      formData.append('orderId', currentOrderId);
+
+      const response = await fetch('/api/payment/confirm', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit payment confirmation');
+      }
+
+      toast({
+        title: "Payment Confirmation Submitted!",
+        description: "Your payment proof has been uploaded. We'll verify it within 24 hours.",
+      });
+
+      setShowQRModal(false);
+      clearCart();
+      setLocation(`/order/${currentOrderId}`);
+    } catch (error) {
+      toast({
+        title: "Upload Failed",
+        description: "Failed to submit payment confirmation. Please try again.",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -209,6 +260,7 @@ export default function Checkout() {
                       <SelectItem value="paypal">PayPal</SelectItem>
                       <SelectItem value="stripe">Credit/Debit Card</SelectItem>
                       <SelectItem value="crypto">Cryptocurrency</SelectItem>
+                      <SelectItem value="online">Online Payment (QR Code)</SelectItem>
                       <SelectItem value="manual">Manual Payment (Contact Admin)</SelectItem>
                     </SelectContent>
                   </Select>
@@ -275,6 +327,20 @@ export default function Checkout() {
           </div>
         </div>
       </div>
+
+      {/* QR Payment Modal */}
+      <QRPaymentModal
+        isOpen={showQRModal}
+        onClose={() => {
+          setShowQRModal(false);
+          if (currentOrderId) {
+            setLocation(`/order/${currentOrderId}`);
+          }
+        }}
+        onPaymentConfirm={handleQRPaymentConfirm}
+        orderAmount={totalAmount}
+        orderId={currentOrderId || undefined}
+      />
     </div>
   );
 }

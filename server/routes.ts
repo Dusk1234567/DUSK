@@ -1,10 +1,11 @@
 import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertCartItemSchema, insertOrderSchema, insertReviewSchema, insertAdminWhitelistSchema, insertWhitelistRequestSchema } from "@shared/schema";
+import { insertCartItemSchema, insertOrderSchema, insertReviewSchema, insertAdminWhitelistSchema, insertWhitelistRequestSchema, insertPaymentConfirmationSchema } from "@shared/schema";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { setupGoogleAuth } from "./googleAuth";
 import { setupEmailAuth } from "./emailAuth";
+import { upload } from "./upload";
 import { randomUUID } from "crypto";
 
 declare module 'express-session' {
@@ -277,6 +278,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user orders:", error);
       res.status(500).json({ message: "Failed to fetch orders" });
+    }
+  });
+
+  // Payment confirmation routes
+  app.post("/api/payment/confirm", upload.single('screenshot'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "Screenshot is required" });
+      }
+
+      const { orderId } = req.body;
+      if (!orderId) {
+        return res.status(400).json({ message: "Order ID is required" });
+      }
+
+      // Verify order exists
+      const order = await storage.getOrder(orderId);
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+
+      const paymentConfirmation = insertPaymentConfirmationSchema.parse({
+        orderId,
+        screenshotPath: req.file.path,
+        status: "pending"
+      });
+
+      const confirmation = await storage.createPaymentConfirmation(paymentConfirmation);
+      
+      // Update order status to indicate payment confirmation received
+      await storage.updateOrderStatus(orderId, "payment_pending");
+      
+      res.json({ 
+        message: "Payment confirmation submitted successfully",
+        confirmationId: confirmation.id
+      });
+    } catch (error) {
+      console.error("Payment confirmation error:", error);
+      res.status(500).json({ message: "Failed to submit payment confirmation" });
     }
   });
 

@@ -73,6 +73,18 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
+// Payment confirmations table for QR payments
+export const paymentConfirmations = pgTable("payment_confirmations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  orderId: varchar("order_id").notNull(),
+  screenshotPath: text("screenshot_path").notNull(),
+  status: varchar("status", { length: 50 }).notNull().default("pending"), // pending, approved, rejected
+  submittedAt: timestamp("submitted_at").defaultNow(),
+  reviewedAt: timestamp("reviewed_at"),
+  reviewedBy: varchar("reviewed_by"), // Admin user ID who reviewed
+  rejectionReason: text("rejection_reason"),
+});
+
 // User table for authentication
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -235,3 +247,12 @@ export type InsertReview = z.infer<typeof insertReviewSchema>;
 export type Review = typeof reviews.$inferSelect;
 export type InsertWhitelistRequest = z.infer<typeof insertWhitelistRequestSchema>;
 export type WhitelistRequest = typeof whitelistRequests.$inferSelect;
+
+// Payment confirmation schemas
+export const insertPaymentConfirmationSchema = createInsertSchema(paymentConfirmations).omit({
+  id: true,
+  submittedAt: true,
+  reviewedAt: true,
+});
+export type InsertPaymentConfirmation = z.infer<typeof insertPaymentConfirmationSchema>;
+export type PaymentConfirmation = typeof paymentConfirmations.$inferSelect;
