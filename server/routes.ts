@@ -187,6 +187,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { playerName, email, paymentMethod, items, couponCode } = req.body;
       
       const cartItems = await storage.getCartItems(sessionId);
+      console.log('Retrieved cart items for session', sessionId, ':', cartItems.length, 'items');
       if (cartItems.length === 0) {
         return res.status(400).json({ message: "Cart is empty" });
       }
@@ -195,10 +196,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let originalAmount = 0;
       const orderItems = [];
       
+      console.log('Processing cart items:', cartItems.length, 'items');
       for (const item of cartItems) {
+        console.log('Looking for product with ID:', item.productId, 'Type:', typeof item.productId);
         const product = await storage.getProductById(item.productId);
         if (product) {
+          console.log('Product found:', product.id, product.name, 'Price:', product.price, 'Type:', typeof product.price);
           const itemTotal = parseFloat(product.price.toString()) * item.quantity;
+          console.log('Item total calculation:', parseFloat(product.price.toString()), '*', item.quantity, '=', itemTotal);
           originalAmount += itemTotal;
           
           orderItems.push({
@@ -208,8 +213,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             unitPrice: product.price,
             totalPrice: itemTotal.toFixed(2)
           });
+        } else {
+          console.log('Product not found for ID:', item.productId);
         }
       }
+      console.log('Final original amount:', originalAmount);
 
       // Handle coupon discount
       let discountAmount = 0;
@@ -718,7 +726,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     });
 
+    // Debug endpoint to make user admin
+    app.post("/api/debug/make-admin", async (req, res) => {
+      try {
+        const { email } = req.body;
+        if (!email) {
+          return res.status(400).json({ message: "Email is required" });
+        }
 
+        const user = await storage.getUserByEmail(email);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        const updatedUser = await storage.updateUserAdminStatus(user.id || user._id?.toString() || '', true);
+        res.json({ 
+          message: "User made admin successfully", 
+          user: { email: updatedUser.email, isAdmin: updatedUser.isAdmin }
+        });
+      } catch (error) {
+        console.error("Make admin error:", error);
+        res.status(500).json({ message: "Failed to make user admin" });
+      }
+    });
   }
 
   // Auth routes - support both session and Replit auth

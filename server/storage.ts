@@ -371,6 +371,7 @@ class MongoStorage implements IStorage {
       await connectToDatabase();
       const newOrder = new OrderModel({
         ...order,
+        id: this.generateUniqueOrderId(),
         createdAt: new Date(),
         updatedAt: new Date()
       });
@@ -380,6 +381,13 @@ class MongoStorage implements IStorage {
       console.log('MongoDB unavailable, using memory storage');
       return memoryStorage.createOrder(order);
     }
+  }
+
+  private generateUniqueOrderId(): string {
+    // Generate a unique order ID with timestamp and random components
+    const timestamp = Date.now().toString(36);
+    const random = Math.random().toString(36).substring(2, 8);
+    return `${timestamp}-${random}`.toUpperCase();
   }
 
   async createOrderWithItems(order: InsertOrder, items: InsertOrderItem[]): Promise<IOrder> {

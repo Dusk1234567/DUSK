@@ -109,7 +109,7 @@ class MemoryStorage implements IStorage {
   }
 
   async createOrder(order: InsertOrder): Promise<IOrder> {
-    const id = this.generateId();
+    const id = this.generateUniqueOrderId();
     const newOrder: IOrder = {
       ...order,
       id,
@@ -119,6 +119,13 @@ class MemoryStorage implements IStorage {
     };
     this.orders.set(id, newOrder);
     return newOrder;
+  }
+
+  private generateUniqueOrderId(): string {
+    // Generate a unique order ID with timestamp and random components
+    const timestamp = Date.now().toString(36);
+    const random = Math.random().toString(36).substring(2, 8);
+    return `${timestamp}-${random}`.toUpperCase();
   }
 
   async createOrderWithItems(order: InsertOrder, items: InsertOrderItem[]): Promise<IOrder> {
