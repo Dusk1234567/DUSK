@@ -78,8 +78,8 @@ export const sendOrderConfirmationEmail = async (
       <tr style="border-bottom: 1px solid #eee;">
         <td style="padding: 12px; text-align: left;">${item.productName}</td>
         <td style="padding: 12px; text-align: center;">${item.quantity}</td>
-        <td style="padding: 12px; text-align: right;">$${item.unitPrice.toFixed(2)}</td>
-        <td style="padding: 12px; text-align: right; font-weight: bold;">$${item.totalPrice.toFixed(2)}</td>
+        <td style="padding: 12px; text-align: right;">$${parseFloat(item.unitPrice.toString()).toFixed(2)}</td>
+        <td style="padding: 12px; text-align: right; font-weight: bold;">$${parseFloat(item.totalPrice.toString()).toFixed(2)}</td>
       </tr>
     `).join('');
 
@@ -123,7 +123,7 @@ export const sendOrderConfirmationEmail = async (
               ${itemsHtml}
               <tr style="background: #f5f5f5; font-weight: bold;">
                 <td colspan="3" style="padding: 15px; text-align: right; border-top: 2px solid #1a5d1a;">Total Amount:</td>
-                <td style="padding: 15px; text-align: right; color: #1a5d1a; font-size: 18px; border-top: 2px solid #1a5d1a;">$${orderDetails.totalAmount.toFixed(2)}</td>
+                <td style="padding: 15px; text-align: right; color: #1a5d1a; font-size: 18px; border-top: 2px solid #1a5d1a;">$${parseFloat(orderDetails.totalAmount.toString()).toFixed(2)}</td>
               </tr>
             </tbody>
           </table>
