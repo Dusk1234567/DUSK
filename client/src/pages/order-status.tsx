@@ -43,6 +43,12 @@ export default function OrderStatusPage() {
   const { data: order, isLoading, error, refetch } = useQuery({
     queryKey: ["/api/orders/public", orderId],
     enabled: false, // Only run when manually triggered
+    queryFn: () => fetch(`/api/orders/public/${orderId}`).then(res => {
+      if (!res.ok) {
+        throw new Error('Order not found');
+      }
+      return res.json();
+    })
   });
 
   const orderData = order as OrderData | undefined;
