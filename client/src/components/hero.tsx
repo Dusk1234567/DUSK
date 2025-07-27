@@ -24,7 +24,7 @@ export default function Hero() {
       </div>
       <div className="relative z-20 text-center px-4 max-w-4xl mx-auto">
         <div className="animate-float">
-          <h1 className="text-6xl md:text-8xl font-bold mb-6 bg-gradient-to-r from-minecraft-green to-neon-cyan bg-clip-text text-transparent animate-scale-in">
+          <h1 className="text-6xl md:text-8xl font-bold mb-6 from-minecraft-green to-neon-cyan bg-clip-text animate-scale-in text-[#152fbd] bg-[#b8121200]">
             LIFESTEAL SHOP
           </h1>
         </div>

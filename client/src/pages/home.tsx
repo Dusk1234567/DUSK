@@ -31,7 +31,7 @@ function AuthenticatedHeader() {
           <a href="/whitelist">
             <Button
               variant="outline"
-              className="border-minecraft-green/30 text-minecraft-green hover:bg-minecraft-green hover:text-white transition-all duration-300 hover-lift"
+              className="border-minecraft-green/30 text-[#f02929] hover:bg-minecraft-green hover:text-white transition-all duration-300 hover-lift"
             >
               Whitelist
             </Button>
