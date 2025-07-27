@@ -117,12 +117,11 @@ Preferred communication style: Simple, everyday language.
 
 ### Recent Changes
 
-- **July 27, 2025**: Successfully activated Google OAuth authentication
-  - Configured Google OAuth credentials (GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET)
-  - Updated frontend login and register pages to enable working Google OAuth buttons
-  - Google authentication fully integrated with existing user system
-  - Users can now sign in with Google accounts seamlessly
-  - Google OAuth automatically links accounts with existing email users
+- **July 27, 2025**: Google OAuth temporarily disabled
+  - Google OAuth setup was completed but disabled per user request
+  - Frontend shows "Google Login Temporarily Disabled" message
+  - Email authentication remains fully functional
+  - Google OAuth can be re-enabled by uncommenting setupGoogleAuth(app) in routes.ts
 
 - **July 27, 2025**: Successfully implemented Minecraft server whitelist system
   - Created comprehensive whitelist request page for users to submit Minecraft usernames

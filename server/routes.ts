@@ -18,7 +18,7 @@ declare module 'express-session' {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication systems
   await setupAuth(app);
-  setupGoogleAuth(app);
+  // setupGoogleAuth(app); // Disabled per user request
   setupEmailAuth(app);
 
   // Get session ID or create one
