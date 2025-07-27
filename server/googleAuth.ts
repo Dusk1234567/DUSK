@@ -4,6 +4,22 @@ import { storage } from "./storage";
 import type { Express } from "express";
 
 export function setupGoogleAuth(app: Express) {
+  // Check if Google OAuth credentials are available
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    console.log("Google OAuth credentials not found. Google authentication will be disabled.");
+    
+    // Add disabled routes that return appropriate responses
+    app.get('/api/auth/google', (req, res) => {
+      res.status(501).json({ message: "Google authentication is not configured" });
+    });
+    
+    app.get('/api/auth/google/callback', (req, res) => {
+      res.status(501).json({ message: "Google authentication is not configured" });
+    });
+    
+    return;
+  }
+
   // Get the current domain for OAuth callback
   const domain = process.env.REPLIT_DOMAINS?.split(',')[0];
   const callbackURL = domain ? `https://${domain}/api/auth/google/callback` : "/api/auth/google/callback";
