@@ -36,6 +36,9 @@ export interface IOrder {
   sessionId?: string;
   userId?: string;
   totalAmount: number;
+  originalAmount?: number;
+  discountAmount?: number;
+  couponCode?: string;
   status: string;
   playerName?: string;
   email: string;
@@ -134,6 +137,24 @@ export interface IWhitelistRequest {
   processedBy?: string;
 }
 
+// Coupon interface
+export interface ICoupon {
+  _id?: string;
+  id?: string;
+  code: string;
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
+  minimumOrderAmount?: number;
+  maxUsages?: number;
+  currentUsages: number;
+  validFrom: Date;
+  validUntil: Date;
+  isActive: boolean;
+  description?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 // Zod validation schemas
 export const insertProductSchema = z.object({
   name: z.string().min(1),
@@ -160,6 +181,9 @@ export const insertOrderSchema = z.object({
   sessionId: z.string().optional(),
   userId: z.string().optional(),
   totalAmount: z.number().positive(),
+  originalAmount: z.number().positive().optional(),
+  discountAmount: z.number().min(0).optional(),
+  couponCode: z.string().optional(),
   status: z.string().default("pending"),
   playerName: z.string().optional(),
   email: z.string().email(),
@@ -220,6 +244,24 @@ export const insertPaymentConfirmationSchema = z.object({
   rejectionReason: z.string().optional(),
 });
 
+export const insertCouponSchema = z.object({
+  code: z.string().min(1).max(50),
+  discountType: z.enum(['percentage', 'fixed']),
+  discountValue: z.number().positive(),
+  minimumOrderAmount: z.number().min(0).optional(),
+  maxUsages: z.number().int().positive().optional(),
+  currentUsages: z.number().int().min(0).default(0),
+  validFrom: z.date(),
+  validUntil: z.date(),
+  isActive: z.boolean().default(true),
+  description: z.string().optional(),
+});
+
+export const validateCouponSchema = z.object({
+  code: z.string().min(1),
+  orderAmount: z.number().positive(),
+});
+
 // Type exports
 export type InsertProduct = z.infer<typeof insertProductSchema>;
 export type InsertCartItem = z.infer<typeof insertCartItemSchema>;
@@ -230,6 +272,8 @@ export type UpsertUser = z.infer<typeof upsertUserSchema>;
 export type InsertReview = z.infer<typeof insertReviewSchema>;
 export type InsertWhitelistRequest = z.infer<typeof insertWhitelistRequestSchema>;
 export type InsertPaymentConfirmation = z.infer<typeof insertPaymentConfirmationSchema>;
+export type InsertCoupon = z.infer<typeof insertCouponSchema>;
+export type ValidateCoupon = z.infer<typeof validateCouponSchema>;
 
 // Export document types for backward compatibility
 export type Product = IProduct;
@@ -241,3 +285,4 @@ export type User = IUser;
 export type Review = IReview;
 export type WhitelistRequest = IWhitelistRequest;
 export type PaymentConfirmation = IPaymentConfirmation;
+export type Coupon = ICoupon;

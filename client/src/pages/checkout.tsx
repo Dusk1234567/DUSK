@@ -13,6 +13,19 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/use-cart";
 import QRPaymentModal from "@/components/qr-payment-modal";
+import { CouponInput } from "@/components/coupon-input";
+
+interface CouponValidationResult {
+  valid: boolean;
+  coupon: {
+    code: string;
+    discountType: 'percentage' | 'fixed';
+    discountValue: number;
+    description?: string;
+  };
+  discountAmount: number;
+  finalAmount: number;
+}
 
 export default function Checkout() {
   const [playerName, setPlayerName] = useState("");
@@ -21,6 +34,7 @@ export default function Checkout() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
   const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<CouponValidationResult | null>(null);
   
   const { items, totalAmount, itemCount, clearCart } = useCart();
   const { user, isAuthenticated } = useAuth();
@@ -57,12 +71,13 @@ export default function Checkout() {
         playerName: playerName.trim(),
         email: email.trim() || user?.email,
         paymentMethod,
+        couponCode: appliedCoupon?.coupon.code,
         items: items.map(item => ({
           productId: item.product?.id || '',
           productName: item.product?.name || '',
           quantity: item.quantity,
-          unitPrice: item.product?.price || '0',
-          totalPrice: (parseFloat(item.product?.price || '0') * item.quantity).toFixed(2)
+          unitPrice: parseFloat(item.product?.price?.toString() || '0'),
+          totalPrice: parseFloat((parseFloat(item.product?.price?.toString() || '0') * item.quantity).toFixed(2))
         }))
       });
       return await response.json();
@@ -277,7 +292,7 @@ export default function Checkout() {
                 disabled={isProcessing || createOrderMutation.isPending}
                 className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-4 text-lg shadow-lg hover:shadow-green-500/25"
               >
-                {isProcessing ? "Creating Order..." : `Create Order - $${totalAmount.toFixed(2)}`}
+                {isProcessing ? "Creating Order..." : `Create Order - $${appliedCoupon ? appliedCoupon.finalAmount.toFixed(2) : totalAmount.toFixed(2)}`}
               </Button>
             </form>
           </div>
@@ -299,16 +314,41 @@ export default function Checkout() {
                       </Badge>
                     </div>
                     <div className="text-green-400 font-medium">
-                      ${(parseFloat(item.product?.price || '0') * item.quantity).toFixed(2)}
+                      ${(parseFloat(item.product?.price?.toString() || '0') * item.quantity).toFixed(2)}
                     </div>
                   </div>
                 ))}
                 
-                <div className="border-t border-green-500/20 pt-4">
-                  <div className="flex justify-between text-xl font-bold text-white">
-                    <span>Total</span>
-                    <span className="text-green-400">${totalAmount.toFixed(2)}</span>
-                  </div>
+                <div className="border-t border-green-500/20 pt-4 space-y-4">
+                  {/* Coupon Input */}
+                  <CouponInput
+                    orderAmount={totalAmount}
+                    onCouponApplied={setAppliedCoupon}
+                    appliedCoupon={appliedCoupon}
+                  />
+                  
+                  {/* Total Display */}
+                  {appliedCoupon ? (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm text-gray-400">
+                        <span>Subtotal</span>
+                        <span>${totalAmount.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm text-green-400">
+                        <span>Discount</span>
+                        <span>-${appliedCoupon.discountAmount.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-xl font-bold text-white">
+                        <span>Total</span>
+                        <span className="text-green-400">${appliedCoupon.finalAmount.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between text-xl font-bold text-white">
+                      <span>Total</span>
+                      <span className="text-green-400">${totalAmount.toFixed(2)}</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-3 text-xs text-green-300">
@@ -356,7 +396,7 @@ export default function Checkout() {
           }
         }}
         onPaymentConfirm={handleQRPaymentConfirm}
-        orderAmount={totalAmount}
+        orderAmount={appliedCoupon ? appliedCoupon.finalAmount : totalAmount}
         orderId={currentOrderId || undefined}
       />
     </div>

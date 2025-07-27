@@ -127,5 +127,50 @@ export async function seedDatabase() {
   for (const product of productsToInsert) {
     await storage.createProduct(product);
   }
+  // Seed sample coupons
+  const sampleCoupons = [
+    {
+      code: "SAVE20",
+      discountType: "percentage" as const,
+      discountValue: 20,
+      minimumOrderAmount: 15,
+      maxUsages: 100,
+      validFrom: new Date(),
+      validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+      isActive: true,
+      description: "20% off all orders over $15"
+    },
+    {
+      code: "NEWBIE10",
+      discountType: "fixed" as const,
+      discountValue: 10,
+      minimumOrderAmount: 25,
+      maxUsages: 50,
+      validFrom: new Date(),
+      validUntil: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // 60 days from now
+      isActive: true,
+      description: "Get $10 off orders over $25 - New player special!"
+    },
+    {
+      code: "RANK15",
+      discountType: "percentage" as const,
+      discountValue: 15,
+      minimumOrderAmount: 20,
+      maxUsages: 25,
+      validFrom: new Date(),
+      validUntil: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
+      isActive: true,
+      description: "15% off all rank purchases"
+    }
+  ];
+
+  for (const coupon of sampleCoupons) {
+    try {
+      await storage.createCoupon(coupon);
+    } catch (error) {
+      console.error(`Error creating coupon ${coupon.code}:`, error);
+    }
+  }
+
   console.log("Database seeded successfully!");
 }

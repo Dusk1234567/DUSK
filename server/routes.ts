@@ -1,7 +1,7 @@
 import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertCartItemSchema, insertOrderSchema, insertReviewSchema, insertAdminWhitelistSchema, insertWhitelistRequestSchema, insertPaymentConfirmationSchema } from "@shared/schema";
+import { insertCartItemSchema, insertOrderSchema, insertReviewSchema, insertAdminWhitelistSchema, insertWhitelistRequestSchema, insertPaymentConfirmationSchema, validateCouponSchema, insertCouponSchema } from "@shared/schema";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { setupGoogleAuth } from "./googleAuth";
 import { setupEmailAuth } from "./emailAuth";
@@ -184,7 +184,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/orders", async (req, res) => {
     try {
       const sessionId = getSessionId(req);
-      const { playerName, email, paymentMethod, items } = req.body;
+      const { playerName, email, paymentMethod, items, couponCode } = req.body;
       
       const cartItems = await storage.getCartItems(sessionId);
       if (cartItems.length === 0) {
@@ -192,14 +192,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Calculate total amount from cart items
-      let totalAmount = 0;
+      let originalAmount = 0;
       const orderItems = [];
       
       for (const item of cartItems) {
         const product = await storage.getProductById(item.productId);
         if (product) {
           const itemTotal = parseFloat(product.price.toString()) * item.quantity;
-          totalAmount += itemTotal;
+          originalAmount += itemTotal;
           
           orderItems.push({
             productId: product.id,
@@ -208,6 +208,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
             unitPrice: product.price,
             totalPrice: itemTotal.toFixed(2)
           });
+        }
+      }
+
+      // Handle coupon discount
+      let discountAmount = 0;
+      let finalAmount = originalAmount;
+      let appliedCouponCode: string | undefined;
+
+      if (couponCode && couponCode.trim()) {
+        const coupon = await storage.getCouponByCode(couponCode.trim());
+        
+        if (coupon && coupon.isActive) {
+          const now = new Date();
+          const validFrom = new Date(coupon.validFrom);
+          const validUntil = new Date(coupon.validUntil);
+          
+          // Validate coupon
+          if (now >= validFrom && now <= validUntil) {
+            if (!coupon.minimumOrderAmount || originalAmount >= coupon.minimumOrderAmount) {
+              if (!coupon.maxUsages || coupon.currentUsages < coupon.maxUsages) {
+                // Apply discount
+                if (coupon.discountType === 'percentage') {
+                  discountAmount = (originalAmount * coupon.discountValue) / 100;
+                } else {
+                  discountAmount = Math.min(coupon.discountValue, originalAmount);
+                }
+                
+                finalAmount = Math.max(0, originalAmount - discountAmount);
+                appliedCouponCode = coupon.code;
+                
+                // Update coupon usage
+                await storage.updateCouponUsage(coupon.code);
+              }
+            }
+          }
         }
       }
 
@@ -222,7 +257,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const orderData = insertOrderSchema.parse({
         sessionId,
         userId,
-        totalAmount: totalAmount,
+        totalAmount: parseFloat(finalAmount.toFixed(2)),
+        originalAmount: parseFloat(originalAmount.toFixed(2)),
+        discountAmount: parseFloat(discountAmount.toFixed(2)),
+        couponCode: appliedCouponCode,
         status: "pending",
         playerName: playerName?.trim(),
         email: email?.trim(),
@@ -490,6 +528,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Payment confirmation error:", error);
       res.status(500).json({ message: "Failed to submit payment confirmation" });
+    }
+  });
+
+  // Coupon validation endpoint
+  app.post("/api/coupons/validate", async (req, res) => {
+    try {
+      const { code, orderAmount } = validateCouponSchema.parse(req.body);
+      
+      const coupon = await storage.getCouponByCode(code);
+      if (!coupon) {
+        return res.status(404).json({ message: "Coupon not found" });
+      }
+      
+      // Check if coupon is active
+      if (!coupon.isActive) {
+        return res.status(400).json({ message: "Coupon is not active" });
+      }
+      
+      // Check if coupon is within valid date range
+      const now = new Date();
+      if (now < new Date(coupon.validFrom) || now > new Date(coupon.validUntil)) {
+        return res.status(400).json({ message: "Coupon has expired or is not yet valid" });
+      }
+      
+      // Check minimum order amount
+      if (coupon.minimumOrderAmount && orderAmount < coupon.minimumOrderAmount) {
+        return res.status(400).json({ 
+          message: `Minimum order amount of $${coupon.minimumOrderAmount.toFixed(2)} required` 
+        });
+      }
+      
+      // Check usage limit
+      if (coupon.maxUsages && coupon.currentUsages >= coupon.maxUsages) {
+        return res.status(400).json({ message: "Coupon usage limit reached" });
+      }
+      
+      // Calculate discount
+      let discountAmount = 0;
+      if (coupon.discountType === 'percentage') {
+        discountAmount = (orderAmount * coupon.discountValue) / 100;
+      } else {
+        discountAmount = Math.min(coupon.discountValue, orderAmount);
+      }
+      
+      const finalAmount = Math.max(0, orderAmount - discountAmount);
+      
+      res.json({
+        valid: true,
+        coupon: {
+          code: coupon.code,
+          discountType: coupon.discountType,
+          discountValue: coupon.discountValue,
+          description: coupon.description
+        },
+        discountAmount: parseFloat(discountAmount.toFixed(2)),
+        finalAmount: parseFloat(finalAmount.toFixed(2))
+      });
+    } catch (error) {
+      console.error("Coupon validation error:", error);
+      res.status(400).json({ message: "Invalid coupon validation request" });
+    }
+  });
+
+  // Admin coupon management routes
+  app.post("/api/admin/coupons", isAuthenticatedUser, async (req: any, res) => {
+    try {
+      const userId = req.userId;
+      const isAdmin = await storage.isUserAdmin(userId);
+      
+      if (!isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const couponData = insertCouponSchema.parse(req.body);
+      const coupon = await storage.createCoupon(couponData);
+      
+      res.json(coupon);
+    } catch (error) {
+      console.error("Create coupon error:", error);
+      res.status(400).json({ message: "Failed to create coupon" });
+    }
+  });
+
+  app.get("/api/admin/coupons", isAuthenticatedUser, async (req: any, res) => {
+    try {
+      const userId = req.userId;
+      const isAdmin = await storage.isUserAdmin(userId);
+      
+      if (!isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const coupons = await storage.getAllCoupons();
+      res.json(coupons);
+    } catch (error) {
+      console.error("Get coupons error:", error);
+      res.status(500).json({ message: "Failed to fetch coupons" });
+    }
+  });
+
+  app.delete("/api/admin/coupons/:id", isAuthenticatedUser, async (req: any, res) => {
+    try {
+      const userId = req.userId;
+      const isAdmin = await storage.isUserAdmin(userId);
+      
+      if (!isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const { id } = req.params;
+      const deleted = await storage.deleteCoupon(id);
+      
+      if (deleted) {
+        res.json({ message: "Coupon deleted successfully" });
+      } else {
+        res.status(404).json({ message: "Coupon not found" });
+      }
+    } catch (error) {
+      console.error("Delete coupon error:", error);
+      res.status(500).json({ message: "Failed to delete coupon" });
     }
   });
 

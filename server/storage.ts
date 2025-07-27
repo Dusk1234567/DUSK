@@ -9,6 +9,7 @@ import {
   type InsertReview,
   type InsertWhitelistRequest,
   type InsertPaymentConfirmation,
+  type InsertCoupon,
   type IProduct,
   type ICartItem,
   type IOrder,
@@ -18,6 +19,7 @@ import {
   type IReview,
   type IWhitelistRequest,
   type IPaymentConfirmation,
+  type ICoupon,
 } from "@shared/schema";
 import { connectToDatabase } from "./db";
 import { memoryStorage } from "./memoryStorage";
@@ -32,6 +34,7 @@ interface UserDocument extends IUser, Document {}
 interface ReviewDocument extends IReview, Document {}
 interface WhitelistRequestDocument extends IWhitelistRequest, Document {}
 interface PaymentConfirmationDocument extends IPaymentConfirmation, Document {}
+interface CouponDocument extends ICoupon, Document {}
 
 // Mongoose Schemas
 const ProductSchema = new Schema({
@@ -59,12 +62,30 @@ const OrderSchema = new Schema({
   sessionId: { type: String },
   userId: { type: String },
   totalAmount: { type: Number, required: true },
+  originalAmount: { type: Number },
+  discountAmount: { type: Number, default: 0 },
+  couponCode: { type: String },
   status: { type: String, default: "pending" },
   playerName: { type: String },
   email: { type: String, required: true },
   paymentMethod: { type: String, default: "pending" },
   transactionId: { type: String },
   items: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+const CouponSchema = new Schema({
+  code: { type: String, required: true, unique: true },
+  discountType: { type: String, enum: ['percentage', 'fixed'], required: true },
+  discountValue: { type: Number, required: true },
+  minimumOrderAmount: { type: Number, default: 0 },
+  maxUsages: { type: Number },
+  currentUsages: { type: Number, default: 0 },
+  validFrom: { type: Date, required: true },
+  validUntil: { type: Date, required: true },
+  isActive: { type: Boolean, default: true },
+  description: { type: String },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -140,6 +161,7 @@ const UserModel = mongoose.model<UserDocument>('User', UserSchema);
 const ReviewModel = mongoose.model<ReviewDocument>('Review', ReviewSchema);
 const WhitelistRequestModel = mongoose.model<WhitelistRequestDocument>('WhitelistRequest', WhitelistRequestSchema);
 const PaymentConfirmationModel = mongoose.model<PaymentConfirmationDocument>('PaymentConfirmation', PaymentConfirmationSchema);
+const CouponModel = mongoose.model<CouponDocument>('Coupon', CouponSchema);
 
 export interface IStorage {
   // Product operations
@@ -198,6 +220,13 @@ export interface IStorage {
   getPaymentConfirmationsByOrder(orderId: string): Promise<IPaymentConfirmation[]>;
   getAllPaymentConfirmations(): Promise<IPaymentConfirmation[]>;
   updatePaymentConfirmation(id: string, status: string, reviewedBy?: string, rejectionReason?: string): Promise<IPaymentConfirmation | undefined>;
+  
+  // Coupon operations
+  createCoupon(coupon: InsertCoupon): Promise<ICoupon>;
+  getCouponByCode(code: string): Promise<ICoupon | undefined>;
+  getAllCoupons(): Promise<ICoupon[]>;
+  updateCouponUsage(code: string): Promise<ICoupon | undefined>;
+  deleteCoupon(id: string): Promise<boolean>;
 }
 
 // Helper function to convert MongoDB document to interface
@@ -667,6 +696,74 @@ class MongoStorage implements IStorage {
       { new: true }
     );
     return updated ? toPlainObject(updated) : undefined;
+  }
+
+  // Coupon operations
+  async createCoupon(coupon: InsertCoupon): Promise<ICoupon> {
+    try {
+      await connectToDatabase();
+      const newCoupon = new CouponModel({
+        ...coupon,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      const saved = await newCoupon.save();
+      return toPlainObject(saved);
+    } catch (error) {
+      console.log('MongoDB unavailable, using memory storage');
+      return memoryStorage.createCoupon(coupon);
+    }
+  }
+
+  async getCouponByCode(code: string): Promise<ICoupon | undefined> {
+    try {
+      await connectToDatabase();
+      const coupon = await CouponModel.findOne({ code });
+      return coupon ? toPlainObject(coupon) : undefined;
+    } catch (error) {
+      console.log('MongoDB unavailable, using memory storage');
+      return memoryStorage.getCouponByCode(code);
+    }
+  }
+
+  async getAllCoupons(): Promise<ICoupon[]> {
+    try {
+      await connectToDatabase();
+      const coupons = await CouponModel.find({}).sort({ createdAt: -1 });
+      return coupons.map(toPlainObject);
+    } catch (error) {
+      console.log('MongoDB unavailable, using memory storage');
+      return memoryStorage.getAllCoupons();
+    }
+  }
+
+  async updateCouponUsage(code: string): Promise<ICoupon | undefined> {
+    try {
+      await connectToDatabase();
+      const updated = await CouponModel.findOneAndUpdate(
+        { code },
+        { 
+          $inc: { currentUsages: 1 },
+          updatedAt: new Date()
+        },
+        { new: true }
+      );
+      return updated ? toPlainObject(updated) : undefined;
+    } catch (error) {
+      console.log('MongoDB unavailable, using memory storage');
+      return memoryStorage.updateCouponUsage(code);
+    }
+  }
+
+  async deleteCoupon(id: string): Promise<boolean> {
+    try {
+      await connectToDatabase();
+      const result = await CouponModel.findByIdAndDelete(id);
+      return result !== null;
+    } catch (error) {
+      console.log('MongoDB unavailable, using memory storage');
+      return memoryStorage.deleteCoupon(id);
+    }
   }
 }
 

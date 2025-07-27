@@ -8,6 +8,7 @@ import {
   type InsertReview,
   type InsertWhitelistRequest,
   type InsertPaymentConfirmation,
+  type InsertCoupon,
   type IProduct,
   type ICartItem,
   type IOrder,
@@ -17,6 +18,7 @@ import {
   type IReview,
   type IWhitelistRequest,
   type IPaymentConfirmation,
+  type ICoupon,
 } from "@shared/schema";
 import { IStorage } from "./storage";
 
@@ -31,6 +33,7 @@ class MemoryStorage implements IStorage {
   private reviews: Map<string, IReview> = new Map();
   private whitelistRequests: Map<string, IWhitelistRequest> = new Map();
   private paymentConfirmations: Map<string, IPaymentConfirmation> = new Map();
+  private coupons: Map<string, ICoupon> = new Map();
   private idCounter = 1;
 
   private generateId(): string {
@@ -354,6 +357,45 @@ class MemoryStorage implements IStorage {
       return confirmation;
     }
     return undefined;
+  }
+
+  // Coupon operations
+  async createCoupon(coupon: InsertCoupon): Promise<ICoupon> {
+    const id = this.generateId();
+    const newCoupon: ICoupon = {
+      ...coupon,
+      id,
+      currentUsages: coupon.currentUsages || 0,
+      isActive: coupon.isActive !== false,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.coupons.set(id, newCoupon);
+    return newCoupon;
+  }
+
+  async getCouponByCode(code: string): Promise<ICoupon | undefined> {
+    return Array.from(this.coupons.values()).find(coupon => coupon.code === code);
+  }
+
+  async getAllCoupons(): Promise<ICoupon[]> {
+    return Array.from(this.coupons.values())
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  async updateCouponUsage(code: string): Promise<ICoupon | undefined> {
+    const coupon = Array.from(this.coupons.values()).find(c => c.code === code);
+    if (coupon) {
+      coupon.currentUsages = (coupon.currentUsages || 0) + 1;
+      coupon.updatedAt = new Date();
+      this.coupons.set(coupon.id, coupon);
+      return coupon;
+    }
+    return undefined;
+  }
+
+  async deleteCoupon(id: string): Promise<boolean> {
+    return this.coupons.delete(id);
   }
 }
 

@@ -10,7 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Users, ShoppingBag, DollarSign, Shield, UserCheck, Trash2 } from "lucide-react";
+import { Users, ShoppingBag, DollarSign, Shield, UserCheck, Trash2, Tag } from "lucide-react";
+import { AdminCoupons } from "@/components/admin-coupons";
 
 interface AdminStats {
   totalUsers: number;
@@ -243,6 +244,7 @@ export default function Admin() {
           <TabsList className="bg-black/40 border-green-500/20">
             <TabsTrigger value="orders" className="data-[state=active]:bg-green-600">Orders</TabsTrigger>
             <TabsTrigger value="users" className="data-[state=active]:bg-green-600">Users</TabsTrigger>
+            <TabsTrigger value="coupons" className="data-[state=active]:bg-green-600">Coupons</TabsTrigger>
             <TabsTrigger value="whitelist" className="data-[state=active]:bg-green-600">Whitelist Requests</TabsTrigger>
             <TabsTrigger value="admins" className="data-[state=active]:bg-green-600">Admin Whitelist</TabsTrigger>
           </TabsList>
@@ -361,6 +363,11 @@ export default function Admin() {
                 </Table>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Coupons Tab */}
+          <TabsContent value="coupons">
+            <AdminCoupons />
           </TabsContent>
 
           {/* Whitelist Requests Tab */}
