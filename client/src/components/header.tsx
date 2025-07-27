@@ -55,43 +55,50 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-light-slate border-b border-minecraft-green/20 sticky top-0 z-40 animate-slide-up">
+    <header className="bg-gray-900 border-b border-green-500/20 sticky top-0 z-40 animate-slide-up">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <div className="text-2xl font-bold text-green-400 animate-scale-in hover-glow transition-all duration-300 cursor-pointer">
-              <span className="text-green-400 text-2xl">⚔️</span>
-              <span className="ml-2 text-green-400 font-extrabold tracking-wider">LIFESTEAL</span>
+            <div className="text-2xl font-bold text-green-400 animate-scale-in hover-glow transition-all duration-300 cursor-pointer" style={{color: '#4ade80'}}>
+              <span className="text-2xl" style={{color: '#4ade80'}}>⚔️</span>
+              <span className="ml-2 font-extrabold tracking-wider" style={{color: '#4ade80'}}>LIFESTEAL</span>
             </div>
           </div>
           
           <nav className="hidden md:flex items-center space-x-8">
             <button 
               onClick={() => scrollToSection('home')}
-              className="text-white hover:text-green-400 transition-all duration-300 hover-scale animate-slide-in-left stagger-1 font-medium"
+              className="font-medium transition-all duration-300 hover-scale animate-slide-in-left stagger-1"
+              style={{color: 'white'}}
             >
               Home
             </button>
             <button 
               onClick={() => scrollToSection('products')}
-              className="text-white hover:text-green-400 transition-all duration-300 hover-scale animate-slide-in-left stagger-2 font-medium"
+              className="font-medium transition-all duration-300 hover-scale animate-slide-in-left stagger-2"
+              style={{color: 'white'}}
             >
               Products
             </button>
             <Link href="/whitelist">
-              <button className="text-white hover:text-green-400 transition-all duration-300 hover-scale animate-slide-in-left stagger-3 font-medium border border-green-500/50 px-3 py-1 rounded bg-green-500/10">
+              <button 
+                className="font-medium transition-all duration-300 hover-scale animate-slide-in-left stagger-3 border border-green-500 px-3 py-1 rounded bg-green-500/20"
+                style={{color: 'white', borderColor: '#22c55e'}}
+              >
                 Whitelist
               </button>
             </Link>
             <button 
               onClick={() => scrollToSection('testimonials')}
-              className="text-white hover:text-green-400 transition-all duration-300 hover-scale animate-slide-in-left stagger-4 font-medium"
+              className="font-medium transition-all duration-300 hover-scale animate-slide-in-left stagger-4"
+              style={{color: 'white'}}
             >
               Reviews
             </button>
             <button 
               onClick={() => scrollToSection('footer')}
-              className="text-white hover:text-green-400 transition-all duration-300 hover-scale animate-slide-in-left stagger-5 font-medium"
+              className="font-medium transition-all duration-300 hover-scale animate-slide-in-left stagger-5"
+              style={{color: 'white'}}
             >
               Support
             </button>
@@ -195,33 +202,38 @@ export default function Header() {
             <nav className="flex flex-col space-y-4">
               <button 
                 onClick={() => scrollToSection('home')}
-                className="text-left text-white hover:text-green-400 transition-colors duration-300 font-medium"
+                className="text-left transition-colors duration-300 font-medium"
+                style={{color: 'white'}}
               >
                 Home
               </button>
               <button 
                 onClick={() => scrollToSection('products')}
-                className="text-left text-white hover:text-green-400 transition-colors duration-300 font-medium"
+                className="text-left transition-colors duration-300 font-medium"
+                style={{color: 'white'}}
               >
                 Products
               </button>
               <Link href="/whitelist">
                 <button 
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="text-left text-white hover:text-green-400 transition-colors duration-300 w-full font-medium border border-green-500/50 px-3 py-2 rounded bg-green-500/10"
+                  className="text-left transition-colors duration-300 w-full font-medium border px-3 py-2 rounded"
+                  style={{color: 'white', borderColor: '#22c55e', backgroundColor: 'rgba(34, 197, 94, 0.2)'}}
                 >
                   Whitelist
                 </button>
               </Link>
               <button 
                 onClick={() => scrollToSection('testimonials')}
-                className="text-left text-white hover:text-green-400 transition-colors duration-300 font-medium"
+                className="text-left transition-colors duration-300 font-medium"
+                style={{color: 'white'}}
               >
                 Reviews
               </button>
               <button 
                 onClick={() => scrollToSection('footer')}
-                className="text-left text-white hover:text-green-400 transition-colors duration-300 font-medium"
+                className="text-left transition-colors duration-300 font-medium"
+                style={{color: 'white'}}
               >
                 Support
               </button>
