@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CartProvider } from "@/hooks/use-cart";
 import { useAuth } from "@/hooks/useAuth";
+import FloatingCartButton from "@/components/floating-cart-button";
 import Home from "@/pages/home";
 import Landing from "@/pages/landing";
 import Login from "@/pages/login";
@@ -37,6 +38,7 @@ function App() {
         <CartProvider>
           <Toaster />
           <Router />
+          <FloatingCartButton />
         </CartProvider>
       </TooltipProvider>
     </QueryClientProvider>

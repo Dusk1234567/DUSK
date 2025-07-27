@@ -117,11 +117,11 @@ export default function Header() {
             </div>
             
             <Link href="/cart">
-              <Button className="relative bg-minecraft-green hover:bg-minecraft-dark-green text-dark-slate transition-all duration-300 hover-lift animate-slide-in-right stagger-5">
-                <ShoppingCart className="h-4 w-4 hover-rotate transition-transform duration-300" />
-                <span className="ml-2 hidden sm:inline">Cart</span>
+              <Button className="relative bg-gradient-to-r from-minecraft-green to-green-600 hover:from-green-600 hover:to-green-700 text-dark-slate transition-all duration-300 hover-lift animate-slide-in-right stagger-5 shadow-lg hover:shadow-green-500/25 border border-green-400/50">
+                <ShoppingCart className="h-5 w-5 hover-rotate transition-transform duration-300" />
+                <span className="ml-2 font-bold">View Cart</span>
                 {itemCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-neon-magenta text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-bounce-slow">
+                  <span className="absolute -top-2 -right-2 bg-gradient-to-r from-neon-magenta to-pink-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center animate-pulse font-bold shadow-lg">
                     {itemCount}
                   </span>
                 )}
@@ -237,6 +237,16 @@ export default function Header() {
               >
                 Support
               </button>
+              <Link href="/cart">
+                <button 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="text-left transition-colors duration-300 w-full font-medium border px-3 py-2 rounded flex items-center gap-2"
+                  style={{color: '#4ade80', borderColor: '#4ade80', backgroundColor: 'rgba(74, 222, 128, 0.2)'}}
+                >
+                  <ShoppingCart className="h-4 w-4" />
+                  Cart {itemCount > 0 && `(${itemCount})`}
+                </button>
+              </Link>
             </nav>
             <div className="mt-4">
               <Input
