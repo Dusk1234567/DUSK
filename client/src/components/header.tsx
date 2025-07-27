@@ -59,39 +59,39 @@ export default function Header() {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <div className="text-2xl font-bold text-green-500 animate-scale-in hover-glow transition-all duration-300 cursor-pointer">
-              <span className="text-green-400">⚔️</span>
-              <span className="ml-2 text-green-400 font-extrabold">LIFESTEAL</span>
+            <div className="text-2xl font-bold text-green-400 animate-scale-in hover-glow transition-all duration-300 cursor-pointer">
+              <span className="text-green-400 text-2xl">⚔️</span>
+              <span className="ml-2 text-green-400 font-extrabold tracking-wider">LIFESTEAL</span>
             </div>
           </div>
           
           <nav className="hidden md:flex items-center space-x-8">
             <button 
               onClick={() => scrollToSection('home')}
-              className="hover:text-minecraft-green transition-all duration-300 hover-scale animate-slide-in-left stagger-1"
+              className="text-white hover:text-green-400 transition-all duration-300 hover-scale animate-slide-in-left stagger-1 font-medium"
             >
               Home
             </button>
             <button 
               onClick={() => scrollToSection('products')}
-              className="hover:text-minecraft-green transition-all duration-300 hover-scale animate-slide-in-left stagger-2"
+              className="text-white hover:text-green-400 transition-all duration-300 hover-scale animate-slide-in-left stagger-2 font-medium"
             >
               Products
             </button>
             <Link href="/whitelist">
-              <button className="text-white hover:text-green-400 transition-all duration-300 hover-scale animate-slide-in-left stagger-3 font-medium">
+              <button className="text-white hover:text-green-400 transition-all duration-300 hover-scale animate-slide-in-left stagger-3 font-medium border border-green-500/50 px-3 py-1 rounded bg-green-500/10">
                 Whitelist
               </button>
             </Link>
             <button 
               onClick={() => scrollToSection('testimonials')}
-              className="hover:text-minecraft-green transition-all duration-300 hover-scale animate-slide-in-left stagger-4"
+              className="text-white hover:text-green-400 transition-all duration-300 hover-scale animate-slide-in-left stagger-4 font-medium"
             >
               Reviews
             </button>
             <button 
               onClick={() => scrollToSection('footer')}
-              className="hover:text-minecraft-green transition-all duration-300 hover-scale animate-slide-in-left stagger-5"
+              className="text-white hover:text-green-400 transition-all duration-300 hover-scale animate-slide-in-left stagger-5 font-medium"
             >
               Support
             </button>
@@ -195,33 +195,33 @@ export default function Header() {
             <nav className="flex flex-col space-y-4">
               <button 
                 onClick={() => scrollToSection('home')}
-                className="text-left hover:text-minecraft-green transition-colors duration-300"
+                className="text-left text-white hover:text-green-400 transition-colors duration-300 font-medium"
               >
                 Home
               </button>
               <button 
                 onClick={() => scrollToSection('products')}
-                className="text-left hover:text-minecraft-green transition-colors duration-300"
+                className="text-left text-white hover:text-green-400 transition-colors duration-300 font-medium"
               >
                 Products
               </button>
               <Link href="/whitelist">
                 <button 
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="text-left hover:text-minecraft-green transition-colors duration-300 w-full"
+                  className="text-left text-white hover:text-green-400 transition-colors duration-300 w-full font-medium border border-green-500/50 px-3 py-2 rounded bg-green-500/10"
                 >
                   Whitelist
                 </button>
               </Link>
               <button 
                 onClick={() => scrollToSection('testimonials')}
-                className="text-left hover:text-minecraft-green transition-colors duration-300"
+                className="text-left text-white hover:text-green-400 transition-colors duration-300 font-medium"
               >
                 Reviews
               </button>
               <button 
                 onClick={() => scrollToSection('footer')}
-                className="text-left hover:text-minecraft-green transition-colors duration-300"
+                className="text-left text-white hover:text-green-400 transition-colors duration-300 font-medium"
               >
                 Support
               </button>

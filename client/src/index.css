@@ -75,6 +75,11 @@
     color: var(--minecraft-green) !important;
   }
   
+  .text-visible {
+    color: white !important;
+    opacity: 1 !important;
+  }
+  
   .bg-minecraft-green {
     background-color: var(--minecraft-green);
   }
