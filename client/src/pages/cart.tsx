@@ -18,13 +18,14 @@ export default function Cart() {
 
   const checkoutMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("/api/orders", "POST", {
+      const response = await apiRequest("POST", "/api/orders", {
         items: items.map(item => ({
           productId: item.product?.id || '',
           quantity: item.quantity,
           price: item.product?.price || '0'
         }))
       });
+      return await response.json();
     },
     onSuccess: () => {
       toast({

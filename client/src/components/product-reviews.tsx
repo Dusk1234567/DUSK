@@ -34,11 +34,12 @@ export default function ProductReviews({ productId, productName }: ProductReview
         throw new Error("Please provide both a rating and comment");
       }
       
-      return await apiRequest("/api/reviews", "POST", {
+      const response = await apiRequest("POST", "/api/reviews", {
         productId,
         rating,
         comment: comment.trim(),
       });
+      return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/reviews", productId] });

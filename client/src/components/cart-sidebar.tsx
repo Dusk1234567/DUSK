@@ -12,7 +12,7 @@ export default function CartSidebar() {
 
   const checkoutMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/orders");
+      const response = await apiRequest("POST", "/api/orders", {});
       return response.json();
     },
     onSuccess: (order) => {
