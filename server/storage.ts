@@ -438,28 +438,53 @@ class MongoStorage implements IStorage {
   }
 
   async updateUserAdminStatus(userId: string, isAdmin: boolean): Promise<IUser> {
-    await connectToDatabase();
-    const updated = await UserModel.findByIdAndUpdate(
-      userId,
-      { isAdmin, updatedAt: new Date() },
-      { new: true }
-    );
-    if (!updated) {
-      throw new Error('User not found');
+    try {
+      await connectToDatabase();
+      // Check if ID is a valid MongoDB ObjectId
+      if (!/^[0-9a-fA-F]{24}$/.test(userId)) {
+        console.log('Invalid ObjectId format, using memory storage');
+        return memoryStorage.updateUserAdminStatus(userId, isAdmin);
+      }
+      const updated = await UserModel.findByIdAndUpdate(
+        userId,
+        { isAdmin, updatedAt: new Date() },
+        { new: true }
+      );
+      if (!updated) {
+        throw new Error('User not found');
+      }
+      return toPlainObject(updated);
+    } catch (error) {
+      console.log('MongoDB unavailable, using memory storage');
+      return memoryStorage.updateUserAdminStatus(userId, isAdmin);
     }
-    return toPlainObject(updated);
   }
 
   async getAllUsers(): Promise<IUser[]> {
-    await connectToDatabase();
-    const users = await UserModel.find({});
-    return users.map(toPlainObject);
+    try {
+      await connectToDatabase();
+      const users = await UserModel.find({});
+      return users.map(toPlainObject);
+    } catch (error) {
+      console.log('MongoDB unavailable, using memory storage');
+      return memoryStorage.getAllUsers();
+    }
   }
 
   async getUser(id: string): Promise<IUser | undefined> {
-    await connectToDatabase();
-    const user = await UserModel.findById(id);
-    return user ? toPlainObject(user) : undefined;
+    try {
+      await connectToDatabase();
+      // Check if ID is a valid MongoDB ObjectId (24 character hex string)
+      if (!/^[0-9a-fA-F]{24}$/.test(id)) {
+        console.log('Invalid ObjectId format, using memory storage');
+        return memoryStorage.getUser(id);
+      }
+      const user = await UserModel.findById(id);
+      return user ? toPlainObject(user) : undefined;
+    } catch (error) {
+      console.log('MongoDB unavailable, using memory storage');
+      return memoryStorage.getUser(id);
+    }
   }
 
   async getUserByEmail(email: string): Promise<IUser | undefined> {
@@ -474,22 +499,37 @@ class MongoStorage implements IStorage {
   }
 
   async getUserByGoogleId(googleId: string): Promise<IUser | undefined> {
-    await connectToDatabase();
-    const user = await UserModel.findOne({ googleId });
-    return user ? toPlainObject(user) : undefined;
+    try {
+      await connectToDatabase();
+      const user = await UserModel.findOne({ googleId });
+      return user ? toPlainObject(user) : undefined;
+    } catch (error) {
+      console.log('MongoDB unavailable, using memory storage');
+      return memoryStorage.getUserByGoogleId(googleId);
+    }
   }
 
   async updateUserGoogleId(userId: string, googleId: string): Promise<IUser> {
-    await connectToDatabase();
-    const updated = await UserModel.findByIdAndUpdate(
-      userId,
-      { googleId, updatedAt: new Date() },
-      { new: true }
-    );
-    if (!updated) {
-      throw new Error('User not found');
+    try {
+      await connectToDatabase();
+      // Check if ID is a valid MongoDB ObjectId
+      if (!/^[0-9a-fA-F]{24}$/.test(userId)) {
+        console.log('Invalid ObjectId format, using memory storage');
+        return memoryStorage.updateUserGoogleId(userId, googleId);
+      }
+      const updated = await UserModel.findByIdAndUpdate(
+        userId,
+        { googleId, updatedAt: new Date() },
+        { new: true }
+      );
+      if (!updated) {
+        throw new Error('User not found');
+      }
+      return toPlainObject(updated);
+    } catch (error) {
+      console.log('MongoDB unavailable, using memory storage');
+      return memoryStorage.updateUserGoogleId(userId, googleId);
     }
-    return toPlainObject(updated);
   }
 
   async upsertUser(user: UpsertUser): Promise<IUser> {
