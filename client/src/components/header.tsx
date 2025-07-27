@@ -234,10 +234,10 @@ export default function Header() {
               <Link href="/order-lookup">
                 <button 
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="text-left transition-colors duration-300 w-full font-medium border px-3 py-2 rounded"
-                  style={{color: 'white', borderColor: '#06b6d4', backgroundColor: 'rgba(6, 182, 212, 0.2)'}}
+                  className="text-left transition-colors duration-300 w-full font-bold border px-4 py-3 rounded bg-orange-600 hover:bg-orange-700 text-white shadow-lg"
                 >
-                  Check Order
+                  <Package className="h-4 w-4 mr-2 inline" />
+                  Track Your Order
                 </button>
               </Link>
               <button 
