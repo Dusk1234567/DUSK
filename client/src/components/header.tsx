@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, ShoppingCart, Menu, X, User, LogOut, Shield } from "lucide-react";
+import { Search, ShoppingCart, Menu, X, User, LogOut, Shield, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/hooks/use-cart";
@@ -90,10 +90,10 @@ export default function Header() {
             </Link>
             <Link href="/order-lookup">
               <button 
-                className="font-medium transition-all duration-300 hover-scale animate-slide-in-left stagger-3.5 border border-cyan-500 px-3 py-1 rounded bg-cyan-500/20"
-                style={{color: 'white', borderColor: '#06b6d4'}}
+                className="font-medium transition-all duration-300 hover-scale animate-slide-in-left stagger-3.5 border border-orange-500 px-4 py-2 rounded bg-orange-600 hover:bg-orange-700 text-white font-bold shadow-lg hover:shadow-orange-500/25"
               >
-                Check Order
+                <Package className="h-4 w-4 mr-2 inline" />
+                Track Your Order
               </button>
             </Link>
             <button 

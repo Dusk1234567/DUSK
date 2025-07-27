@@ -14,6 +14,13 @@ export default function Landing() {
           </div>
           <div className="flex gap-4">
             <Button
+              onClick={() => window.location.href = "/order-lookup"}
+              variant="outline"
+              className="border-2 border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white font-bold transition-all duration-300 hover-lift"
+            >
+              Track Your Order
+            </Button>
+            <Button
               onClick={() => window.location.href = "/login"}
               className="bg-minecraft-green hover:bg-minecraft-dark-green text-dark-slate font-bold transition-all duration-300 hover-lift"
             >
@@ -53,6 +60,13 @@ export default function Landing() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+            <Button
+              onClick={() => window.location.href = "/order-lookup"}
+              className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-4 text-lg font-bold transition-all duration-300 hover-lift shadow-lg hover:shadow-orange-500/25"
+            >
+              <Shield className="h-5 w-5 mr-2" />
+              Track Your Order
+            </Button>
             <Button
               onClick={() => window.location.href = "/login"}
               className="bg-minecraft-green hover:bg-minecraft-dark-green text-dark-slate px-8 py-4 text-lg font-bold transition-all duration-300 hover-lift"

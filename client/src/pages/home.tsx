@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { User, LogOut, Crown } from "lucide-react";
+import { User, LogOut, Crown, Shield } from "lucide-react";
 import Hero from "@/components/hero";
 import ProductGrid from "@/components/product-grid";
 import CartSidebar from "@/components/cart-sidebar";
@@ -28,6 +28,14 @@ function AuthenticatedHeader() {
               </span>
             </div>
           )}
+          <a href="/order-lookup">
+            <Button
+              className="bg-orange-600 hover:bg-orange-700 text-white font-bold transition-all duration-300 hover-lift shadow-lg hover:shadow-orange-500/25"
+            >
+              <Shield className="h-4 w-4 mr-2" />
+              Track Your Order
+            </Button>
+          </a>
           <a href="/whitelist">
             <Button
               variant="outline"
