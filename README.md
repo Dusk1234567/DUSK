@@ -34,6 +34,7 @@ A comprehensive e-commerce platform specifically designed for Minecraft Lifestea
 ## 📚 Documentation
 
 - [Complete Localhost Setup Guide](./LOCALHOST_SETUP.md) - Detailed instructions for running locally
+- [Windows Setup Guide](./WINDOWS_SETUP.md) - Windows-specific setup and troubleshooting
 - [Environment Variables Guide](./.env.example) - All configuration options
 
 ## 🏗️ Architecture

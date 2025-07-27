@@ -133,29 +133,48 @@ The application automatically creates tables and seeds initial data when it star
 
 ### Common Issues
 
-1. **Database Connection Error**
+1. **Windows NODE_ENV Error** (`'NODE_ENV' is not recognized`)
+   - **Solution 1**: Use cross-env: `npx cross-env NODE_ENV=development tsx server/index.ts`
+   - **Solution 2**: Command Prompt: `set NODE_ENV=development && tsx server/index.ts`
+   - **Solution 3**: PowerShell: `$env:NODE_ENV="development"; tsx server/index.ts`
+   - **Solution 4**: Install cross-env globally: `npm install -g cross-env`
+
+2. **Database Connection Error**
    - Check if MongoDB is running: `mongosh` or `mongo` (command line)
    - On Windows: Check Services for "MongoDB Server"
    - On macOS: `brew services list | grep mongodb`
    - On Linux: `sudo systemctl status mongod`
    - Verify database URL in `.env` file
+   - **Note**: App will automatically use memory storage if MongoDB is unavailable
 
-2. **Port Already in Use**
+3. **Port Already in Use**
    - Change the PORT in `.env` file to a different number (e.g., 3000, 8000)
-   - Or kill the process using port 5000: `lsof -ti:5000 | xargs kill -9`
+   - Windows: `netstat -ano | findstr :5000` then `taskkill /PID <pid> /F`
+   - macOS/Linux: `lsof -ti:5000 | xargs kill -9`
 
-3. **Node Modules Issues**
+4. **Node Modules Issues**
    - Clear cache and reinstall: `rm -rf node_modules package-lock.json && npm install`
+   - Windows: `rmdir /s node_modules && del package-lock.json && npm install`
 
-4. **Permission Errors**
+5. **Permission Errors**
    - On Linux/macOS, you might need to use `sudo` for global npm installs
-   - Create uploads directory: `mkdir -p uploads`
+   - Create uploads directory: `mkdir -p uploads` (Linux/macOS) or `mkdir uploads` (Windows)
 
 ### Development Commands
 
 ```bash
 # Start development server with auto-reload
 npm run dev
+
+# Windows users: If you get "'NODE_ENV' is not recognized" error:
+# Option 1: Use cross-env (recommended)
+npx cross-env NODE_ENV=development tsx server/index.ts
+
+# Option 2: Set variable separately
+set NODE_ENV=development && tsx server/index.ts
+
+# Option 3: Use PowerShell
+$env:NODE_ENV="development"; tsx server/index.ts
 
 # Build for production
 npm run build

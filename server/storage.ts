@@ -493,26 +493,31 @@ class MongoStorage implements IStorage {
   }
 
   async upsertUser(user: UpsertUser): Promise<IUser> {
-    await connectToDatabase();
-    
-    if (user.email) {
-      const existing = await UserModel.findOne({ email: user.email });
-      if (existing) {
-        // Update existing user
-        Object.assign(existing, { ...user, updatedAt: new Date() });
-        const updated = await existing.save();
-        return toPlainObject(updated);
+    try {
+      await connectToDatabase();
+      
+      if (user.email) {
+        const existing = await UserModel.findOne({ email: user.email });
+        if (existing) {
+          // Update existing user
+          Object.assign(existing, { ...user, updatedAt: new Date() });
+          const updated = await existing.save();
+          return toPlainObject(updated);
+        }
       }
-    }
 
-    // Create new user
-    const newUser = new UserModel({
-      ...user,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    });
-    const saved = await newUser.save();
-    return toPlainObject(saved);
+      // Create new user
+      const newUser = new UserModel({
+        ...user,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      const saved = await newUser.save();
+      return toPlainObject(saved);
+    } catch (error) {
+      console.log('MongoDB unavailable, using memory storage');
+      return memoryStorage.upsertUser(user);
+    }
   }
 
   async getReviewsByProduct(productId: string): Promise<IReview[]> {
