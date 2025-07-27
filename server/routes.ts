@@ -214,8 +214,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let userId: string | undefined;
       if (req.session?.userId) {
         userId = req.session.userId;
-      } else if (req.isAuthenticated && req.isAuthenticated() && req.user?.id) {
-        userId = req.user.id;
+      } else if (req.isAuthenticated && req.isAuthenticated() && (req.user as any)?.id) {
+        userId = (req.user as any).id;
       }
 
       const orderData = insertOrderSchema.parse({
@@ -254,8 +254,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (req.session?.userId) {
         userId = req.session.userId;
-      } else if (req.isAuthenticated && req.isAuthenticated() && req.user?.id) {
-        userId = req.user.id;
+      } else if (req.isAuthenticated && req.isAuthenticated() && (req.user as any)?.id) {
+        userId = (req.user as any).id;
       }
       
       // Allow access if it's the user's order (by session or user ID)
@@ -266,6 +266,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(order);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch order" });
+    }
+  });
+
+  // Order lookup with email verification
+  app.get("/api/orders/lookup", async (req, res) => {
+    try {
+      const { email, orderId } = req.query;
+      
+      if (!email || !orderId) {
+        return res.status(400).json({ message: "Email and Order ID are required" });
+      }
+      
+      const order = await storage.getOrder(orderId as string);
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+      
+      // Verify email matches the order
+      if (order.email !== email) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+      
+      res.json(order);
+    } catch (error) {
+      console.error("Order lookup error:", error);
+      res.status(500).json({ message: "Failed to lookup order" });
+    }
+  });
+
+  // Cancel order
+  app.put("/api/orders/:id/cancel", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { email } = req.body;
+      
+      const order = await storage.getOrder(id);
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+      
+      // Check permissions (either email matches or user owns the order)
+      const sessionId = getSessionId(req);
+      let userId: string | undefined;
+      
+      if (req.session?.userId) {
+        userId = req.session.userId;
+      } else if (req.isAuthenticated && req.isAuthenticated() && (req.user as any)?.id) {
+        userId = (req.user as any).id;
+      }
+      
+      const hasEmailAccess = email && order.email === email;
+      const hasSessionAccess = order.sessionId === sessionId || order.userId === userId;
+      
+      if (!hasEmailAccess && !hasSessionAccess) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Only allow cancellation of pending or payment_pending orders
+      if (!['pending', 'payment_pending'].includes(order.status)) {
+        return res.status(400).json({ message: "Order cannot be cancelled" });
+      }
+      
+      // Update order status to cancelled
+      await storage.updateOrderStatus(id, 'cancelled');
+      
+      res.json({ message: "Order cancelled successfully" });
+    } catch (error) {
+      console.error("Order cancellation error:", error);
+      res.status(500).json({ message: "Failed to cancel order" });
     }
   });
 

@@ -217,9 +217,13 @@ export default function Checkout() {
                     </p>
                   </div>
                   
-                  {!user?.email && (
-                    <div>
-                      <Label htmlFor="email" className="text-white">Email Address *</Label>
+                  <div>
+                    <Label htmlFor="email" className="text-white">Email Address *</Label>
+                    {user?.email ? (
+                      <div className="text-green-400 bg-black/20 border border-green-500/30 rounded-md px-3 py-2">
+                        {user.email}
+                      </div>
+                    ) : (
                       <Input
                         id="email"
                         type="email"
@@ -229,17 +233,14 @@ export default function Checkout() {
                         className="bg-black/20 border-green-500/30 text-white placeholder:text-gray-400"
                         required
                       />
-                    </div>
-                  )}
-                  
-                  {user?.email && (
-                    <div>
-                      <Label className="text-white">Email Address</Label>
-                      <div className="text-green-400 bg-black/20 border border-green-500/30 rounded-md px-3 py-2">
-                        {user.email}
-                      </div>
-                    </div>
-                  )}
+                    )}
+                    <p className="text-xs text-gray-400 mt-1">
+                      {user?.email ? 
+                        "Using your account email for order updates and lookups." :
+                        "Required for order updates and to look up your order later."
+                      }
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
 
@@ -334,7 +335,24 @@ export default function Checkout() {
         onClose={() => {
           setShowQRModal(false);
           if (currentOrderId) {
-            setLocation(`/order/${currentOrderId}`);
+            // Cancel the order when QR code is closed without payment
+            fetch(`/api/orders/${currentOrderId}/cancel`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: email || user?.email })
+            }).then(() => {
+              toast({
+                title: "Order Cancelled",
+                description: "Your order has been cancelled since payment was not completed.",
+                variant: "destructive"
+              });
+            }).catch(() => {
+              // If cancellation fails, still redirect but don't show error
+              console.log("Failed to cancel order on modal close");
+            });
+            setLocation('/');
+          } else {
+            setLocation('/');
           }
         }}
         onPaymentConfirm={handleQRPaymentConfirm}

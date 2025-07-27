@@ -34,7 +34,7 @@ export const orders = pgTable("orders", {
   totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
   status: varchar("status", { length: 50 }).notNull().default("pending"),
   playerName: varchar("player_name"), // Minecraft username
-  email: varchar("email"), // Contact email
+  email: varchar("email").notNull(), // Contact email (required)
   paymentMethod: varchar("payment_method").default("pending"),
   transactionId: varchar("transaction_id"),
   items: jsonb("items").notNull(), // Store order items as JSON

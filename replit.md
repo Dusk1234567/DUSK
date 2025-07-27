@@ -117,6 +117,14 @@ Preferred communication style: Simple, everyday language.
 
 ### Recent Changes
 
+- **July 27, 2025**: Added comprehensive order management system
+  - Created separate order lookup page requiring email verification for security
+  - Added order cancellation functionality for pending and payment-pending orders
+  - Updated checkout to require email for all orders (authenticated users use account email)
+  - QR code payment cancellation automatically cancels orders to prevent orphaned pending orders
+  - Email field is now required in database schema for proper order tracking
+  - Users can cancel orders through the order lookup page or when closing QR payment modals
+
 - **July 27, 2025**: Google OAuth temporarily disabled
   - Google OAuth setup was completed but disabled per user request
   - Frontend shows "Google Login Temporarily Disabled" message
