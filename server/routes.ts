@@ -237,7 +237,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Send order confirmation email
       try {
-        await sendOrderConfirmationEmail(
+        console.log('Preparing to send confirmation email for order:', order.id || order._id?.toString());
+        const emailResult = await sendOrderConfirmationEmail(
           orderData.email,
           order.id || order._id?.toString() || 'unknown',
           {
@@ -247,9 +248,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             status: orderData.status
           }
         );
-        console.log('Order confirmation email sent successfully');
+        console.log('Email sending result:', emailResult);
       } catch (emailError) {
         console.error('Failed to send confirmation email:', emailError);
+        console.error('Email error details:', emailError instanceof Error ? emailError.message : emailError);
         // Don't fail the order creation if email fails
       }
       

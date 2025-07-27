@@ -15,13 +15,37 @@ const createTransporter = () => {
     return null;
   }
 
-  return nodemailer.createTransporter({
-    service: 'gmail',
-    auth: {
-      user: 'dusk49255@gmail.com',
-      pass: process.env.EMAIL_APP_PASSWORD
-    }
-  });
+  console.log('Creating email transporter with Gmail SMTP');
+  console.log('Email user:', 'dusk49255@gmail.com');
+  console.log('Password length:', process.env.EMAIL_APP_PASSWORD.length);
+
+  try {
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false, // true for 465, false for other ports
+      auth: {
+        user: 'dusk49255@gmail.com',
+        pass: process.env.EMAIL_APP_PASSWORD
+      },
+      debug: true, // Enable debug logging
+      logger: true // Enable logger
+    });
+
+    // Verify connection configuration
+    transporter.verify((error, success) => {
+      if (error) {
+        console.error('Email transporter verification failed:', error);
+      } else {
+        console.log('Email server is ready to send messages');
+      }
+    });
+
+    return transporter;
+  } catch (error) {
+    console.error('Failed to create email transporter:', error);
+    return null;
+  }
 };
 
 export const sendOrderConfirmationEmail = async (
@@ -40,6 +64,9 @@ export const sendOrderConfirmationEmail = async (
   }
 ) => {
   try {
+    console.log('Attempting to send order confirmation email to:', customerEmail);
+    console.log('Email credentials available:', !!process.env.EMAIL_APP_PASSWORD);
+    
     const transporter = createTransporter();
     
     if (!transporter) {
@@ -136,8 +163,14 @@ export const sendOrderConfirmationEmail = async (
       html: emailHtml
     };
 
+    console.log('Sending email with options:', {
+      from: mailOptions.from,
+      to: mailOptions.to,
+      subject: mailOptions.subject
+    });
+    
     const result = await transporter.sendMail(mailOptions);
-    console.log('Order confirmation email sent:', result.messageId);
+    console.log('Order confirmation email sent successfully:', result.messageId);
     return { success: true, messageId: result.messageId };
   } catch (error) {
     console.error('Failed to send order confirmation email:', error);
