@@ -5,6 +5,7 @@ import { insertCartItemSchema, insertOrderSchema, insertReviewSchema, insertAdmi
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { setupGoogleAuth } from "./googleAuth";
 import { setupEmailAuth } from "./emailAuth";
+import { sendOrderConfirmationEmail, sendOrderStatusUpdateEmail } from "./emailService.js";
 import { upload } from "./upload";
 import { randomUUID } from "crypto";
 
@@ -233,6 +234,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Clear cart after creating order
       await storage.clearCart(sessionId);
+      
+      // Send order confirmation email
+      try {
+        await sendOrderConfirmationEmail(
+          orderData.email,
+          order.id || order._id?.toString() || 'unknown',
+          {
+            playerName: orderData.playerName,
+            totalAmount: orderData.totalAmount,
+            items: orderItems,
+            status: orderData.status
+          }
+        );
+        console.log('Order confirmation email sent successfully');
+      } catch (emailError) {
+        console.error('Failed to send confirmation email:', emailError);
+        // Don't fail the order creation if email fails
+      }
       
       res.json(order);
     } catch (error) {
@@ -644,6 +663,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedOrder = await storage.updateOrderStatus(req.params.id, status);
       if (!updatedOrder) {
         return res.status(404).json({ message: "Order not found" });
+      }
+      
+      // Send status update email if email exists
+      if (updatedOrder.email) {
+        try {
+          await sendOrderStatusUpdateEmail(
+            updatedOrder.email,
+            updatedOrder.id || updatedOrder._id?.toString() || req.params.id,
+            status,
+            updatedOrder.playerName
+          );
+          console.log('Order status update email sent successfully');
+        } catch (emailError) {
+          console.error('Failed to send status update email:', emailError);
+        }
       }
       
       // Parse items JSON string back to array for frontend

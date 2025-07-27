@@ -48,7 +48,15 @@ export default function OrderLookupPage() {
   const queryClient = useQueryClient();
 
   const { data: order, isLoading, error, refetch } = useQuery({
-    queryKey: ["/api/orders/lookup", { email, orderId }],
+    queryKey: ["/api/orders/lookup", email, orderId],
+    queryFn: async () => {
+      const params = new URLSearchParams({ email: email.trim(), orderId: orderId.trim() });
+      const response = await fetch(`/api/orders/lookup?${params}`);
+      if (!response.ok) {
+        throw new Error('Order not found');
+      }
+      return response.json();
+    },
     enabled: false, // Only run when manually triggered
   });
 
