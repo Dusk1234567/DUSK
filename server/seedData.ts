@@ -1,9 +1,8 @@
-import { db } from "./db";
-import { products } from "@shared/schema";
+import { storage } from "./storage";
 
 export async function seedDatabase() {
   // Check if products already exist
-  const existingProducts = await db.select().from(products).limit(1);
+  const existingProducts = await storage.getProducts();
   if (existingProducts.length > 0) {
     console.log("Database already seeded");
     return;
@@ -112,6 +111,21 @@ export async function seedDatabase() {
     }
   ];
 
-  await db.insert(products).values(sampleProducts);
+  // Convert price strings to numbers and handle null values
+  const productsToInsert = sampleProducts.map(product => ({
+    ...product,
+    price: parseFloat(product.price),
+    badge: product.badge || undefined,
+    badgeColor: product.badgeColor || undefined,
+    buttonColor: product.buttonColor || undefined,
+    rankLevel: product.rankLevel || undefined,
+    bonusText: product.bonusText || undefined,
+    coinAmount: product.coinAmount || undefined,
+  }));
+
+  // Insert products using storage interface
+  for (const product of productsToInsert) {
+    await storage.createProduct(product);
+  }
   console.log("Database seeded successfully!");
 }

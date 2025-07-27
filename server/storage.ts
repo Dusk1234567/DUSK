@@ -1,428 +1,773 @@
 import {
-  products,
-  cartItems,
-  orders,
-  orderItems,
-  adminWhitelist,
-  users,
-  reviews,
-  whitelistRequests,
-  paymentConfirmations,
-  type Product,
+  Product,
+  CartItem,
+  Order,
+  OrderItem,
+  AdminWhitelist,
+  User,
+  Review,
+  WhitelistRequest,
+  PaymentConfirmation,
   type InsertProduct,
-  type CartItem,
   type InsertCartItem,
-  type Order,
   type InsertOrder,
-  type OrderItem,
   type InsertOrderItem,
-  type AdminWhitelist,
   type InsertAdminWhitelist,
-  type User,
   type UpsertUser,
-  type Review,
   type InsertReview,
-  type WhitelistRequest,
   type InsertWhitelistRequest,
-  type PaymentConfirmation,
   type InsertPaymentConfirmation,
+  type IProduct,
+  type ICartItem,
+  type IOrder,
+  type IOrderItem,
+  type IAdminWhitelist,
+  type IUser,
+  type IReview,
+  type IWhitelistRequest,
+  type IPaymentConfirmation,
 } from "@shared/schema";
-import { db } from "./db";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { connectToDatabase } from "./db";
 
 export interface IStorage {
   // Product operations
-  getProducts(): Promise<Product[]>;
-  getProductById(id: string): Promise<Product | undefined>;
-  getProductsByCategory(category: string): Promise<Product[]>;
-  createProduct(product: InsertProduct): Promise<Product>;
+  getProducts(): Promise<IProduct[]>;
+  getProductById(id: string): Promise<IProduct | undefined>;
+  getProductsByCategory(category: string): Promise<IProduct[]>;
+  createProduct(product: InsertProduct): Promise<IProduct>;
 
   // Cart operations
-  getCartItems(sessionId: string): Promise<CartItem[]>;
-  addToCart(cartItem: InsertCartItem): Promise<CartItem>;
-  updateCartItem(id: string, quantity: number): Promise<CartItem | undefined>;
+  getCartItems(sessionId: string): Promise<ICartItem[]>;
+  addToCart(cartItem: InsertCartItem): Promise<ICartItem>;
+  updateCartItem(id: string, quantity: number): Promise<ICartItem | undefined>;
   removeFromCart(id: string): Promise<boolean>;
   clearCart(sessionId: string): Promise<void>;
 
   // Order operations
-  createOrder(order: InsertOrder): Promise<Order>;
-  createOrderWithItems(order: InsertOrder, items: InsertOrderItem[]): Promise<Order>;
-  getOrder(id: string): Promise<Order | undefined>;
-  getOrdersByUser(userId: string): Promise<Order[]>;
-  getAllOrders(): Promise<Order[]>;
-  updateOrderStatus(id: string, status: string): Promise<Order | undefined>;
+  createOrder(order: InsertOrder): Promise<IOrder>;
+  createOrderWithItems(order: InsertOrder, items: InsertOrderItem[]): Promise<IOrder>;
+  getOrder(id: string): Promise<IOrder | undefined>;
+  getOrdersByUser(userId: string): Promise<IOrder[]>;
+  getAllOrders(): Promise<IOrder[]>;
+  updateOrderStatus(id: string, status: string): Promise<IOrder | undefined>;
   
   // Order items operations
-  getOrderItems(orderId: string): Promise<OrderItem[]>;
+  getOrderItems(orderId: string): Promise<IOrderItem[]>;
   
   // Admin operations
   isUserAdmin(userId: string): Promise<boolean>;
-  addToAdminWhitelist(admin: InsertAdminWhitelist): Promise<AdminWhitelist>;
+  addToAdminWhitelist(admin: InsertAdminWhitelist): Promise<IAdminWhitelist>;
   removeFromAdminWhitelist(email: string): Promise<boolean>;
-  getAdminWhitelist(): Promise<AdminWhitelist[]>;
+  getAdminWhitelist(): Promise<IAdminWhitelist[]>;
   getUserStats(): Promise<{ totalUsers: number; totalOrders: number; totalRevenue: string }>;
-  updateUserAdminStatus(userId: string, isAdmin: boolean): Promise<User>;
-  getAllUsers(): Promise<User[]>;
+  updateUserAdminStatus(userId: string, isAdmin: boolean): Promise<IUser>;
+  getAllUsers(): Promise<IUser[]>;
 
   // User operations
-  getUser(id: string): Promise<User | undefined>;
-  getUserByEmail(email: string): Promise<User | undefined>;
-  getUserByGoogleId(googleId: string): Promise<User | undefined>;
-  updateUserGoogleId(userId: string, googleId: string): Promise<User>;
-  upsertUser(user: UpsertUser): Promise<User>;
+  getUser(id: string): Promise<IUser | undefined>;
+  getUserByEmail(email: string): Promise<IUser | undefined>;
+  getUserByGoogleId(googleId: string): Promise<IUser | undefined>;
+  updateUserGoogleId(userId: string, googleId: string): Promise<IUser>;
+  upsertUser(user: UpsertUser): Promise<IUser>;
 
   // Review operations
-  getReviewsByProduct(productId: string): Promise<Review[]>;
-  createReview(review: InsertReview): Promise<Review>;
-  getReviewsByUser(userId: string): Promise<Review[]>;
+  getReviewsByProduct(productId: string): Promise<IReview[]>;
+  createReview(review: InsertReview): Promise<IReview>;
+  getReviewsByUser(userId: string): Promise<IReview[]>;
 
   // Whitelist request operations
-  createWhitelistRequest(request: InsertWhitelistRequest): Promise<WhitelistRequest>;
-  getWhitelistRequests(): Promise<WhitelistRequest[]>;
-  getWhitelistRequestsByUser(userId: string): Promise<WhitelistRequest[]>;
-  updateWhitelistRequestStatus(id: string, status: string, reason?: string, processedBy?: string): Promise<WhitelistRequest | undefined>;
-  getWhitelistRequestByUsername(username: string): Promise<WhitelistRequest | undefined>;
+  createWhitelistRequest(request: InsertWhitelistRequest): Promise<IWhitelistRequest>;
+  getWhitelistRequests(): Promise<IWhitelistRequest[]>;
+  getWhitelistRequestsByUser(userId: string): Promise<IWhitelistRequest[]>;
+  updateWhitelistRequestStatus(id: string, status: string, reason?: string, processedBy?: string): Promise<IWhitelistRequest | undefined>;
+  getWhitelistRequestByUsername(username: string): Promise<IWhitelistRequest | undefined>;
 
   // Payment confirmation operations
-  createPaymentConfirmation(confirmation: InsertPaymentConfirmation): Promise<PaymentConfirmation>;
-  getPaymentConfirmationsByOrder(orderId: string): Promise<PaymentConfirmation[]>;
-  updatePaymentConfirmationStatus(id: string, status: string, reviewedBy?: string, reason?: string): Promise<PaymentConfirmation | undefined>;
-  getAllPaymentConfirmations(): Promise<PaymentConfirmation[]>;
+  createPaymentConfirmation(confirmation: InsertPaymentConfirmation): Promise<IPaymentConfirmation>;
+  getPaymentConfirmationsByOrder(orderId: string): Promise<IPaymentConfirmation[]>;
+  updatePaymentConfirmationStatus(id: string, status: string, reviewedBy?: string, reason?: string): Promise<IPaymentConfirmation | undefined>;
+  getAllPaymentConfirmations(): Promise<IPaymentConfirmation[]>;
 }
 
 export class DatabaseStorage implements IStorage {
-  // Product operations
-  async getProducts(): Promise<Product[]> {
-    return await db.select().from(products);
+  constructor() {
+    // Ensure database connection on initialization
+    connectToDatabase().catch(console.error);
   }
 
-  async getProductById(id: string): Promise<Product | undefined> {
-    const [product] = await db.select().from(products).where(eq(products.id, id));
+  // Product operations
+  async getProducts(): Promise<IProduct[]> {
+    await connectToDatabase();
+    return await Product.find().lean();
+  }
+
+  async getProductById(id: string): Promise<IProduct | undefined> {
+    await connectToDatabase();
+    const product = await Product.findById(id).lean();
     return product || undefined;
   }
 
-  async getProductsByCategory(category: string): Promise<Product[]> {
-    return await db.select().from(products).where(eq(products.category, category));
+  async getProductsByCategory(category: string): Promise<IProduct[]> {
+    await connectToDatabase();
+    return await Product.find({ category }).lean();
   }
 
-  async createProduct(product: InsertProduct): Promise<Product> {
-    const [newProduct] = await db.insert(products).values(product).returning();
-    return newProduct;
+  async createProduct(product: InsertProduct): Promise<IProduct> {
+    await connectToDatabase();
+    const newProduct = new Product(product);
+    await newProduct.save();
+    return newProduct.toObject();
   }
 
   // Cart operations
-  async getCartItems(sessionId: string): Promise<CartItem[]> {
-    return await db.select().from(cartItems).where(eq(cartItems.sessionId, sessionId));
+  async getCartItems(sessionId: string): Promise<ICartItem[]> {
+    await connectToDatabase();
+    return await CartItem.find({ sessionId }).lean();
   }
 
-  async addToCart(cartItem: InsertCartItem): Promise<CartItem> {
+  async addToCart(cartItem: InsertCartItem): Promise<ICartItem> {
+    await connectToDatabase();
     // Check if item already exists
-    const [existingItem] = await db
-      .select()
-      .from(cartItems)
-      .where(and(eq(cartItems.sessionId, cartItem.sessionId), eq(cartItems.productId, cartItem.productId)));
+    const existingItem = await CartItem.findOne({
+      sessionId: cartItem.sessionId,
+      productId: cartItem.productId
+    });
 
     if (existingItem) {
       // Update quantity
-      const [updatedItem] = await db
-        .update(cartItems)
-        .set({ quantity: existingItem.quantity + (cartItem.quantity || 1) })
-        .where(eq(cartItems.id, existingItem.id))
-        .returning();
-      return updatedItem;
+      existingItem.quantity += cartItem.quantity;
+      await existingItem.save();
+      return existingItem.toObject();
+    } else {
+      // Create new cart item
+      const newCartItem = new CartItem(cartItem);
+      await newCartItem.save();
+      return newCartItem.toObject();
     }
-
-    // Create new item
-    const [newItem] = await db.insert(cartItems).values(cartItem).returning();
-    return newItem;
   }
 
-  async updateCartItem(id: string, quantity: number): Promise<CartItem | undefined> {
-    const [updatedItem] = await db
-      .update(cartItems)
-      .set({ quantity })
-      .where(eq(cartItems.id, id))
-      .returning();
-    return updatedItem || undefined;
+  async updateCartItem(id: string, quantity: number): Promise<ICartItem | undefined> {
+    await connectToDatabase();
+    const cartItem = await CartItem.findByIdAndUpdate(
+      id,
+      { quantity },
+      { new: true }
+    );
+    return cartItem?.toObject();
   }
 
   async removeFromCart(id: string): Promise<boolean> {
-    const result = await db.delete(cartItems).where(eq(cartItems.id, id));
-    return (result.rowCount || 0) > 0;
+    await connectToDatabase();
+    const result = await CartItem.findByIdAndDelete(id);
+    return !!result;
   }
 
   async clearCart(sessionId: string): Promise<void> {
-    await db.delete(cartItems).where(eq(cartItems.sessionId, sessionId));
+    await connectToDatabase();
+    await CartItem.deleteMany({ sessionId });
   }
 
   // Order operations
-  async createOrder(order: InsertOrder): Promise<Order> {
-    const [newOrder] = await db.insert(orders).values(order).returning();
-    return newOrder;
+  async createOrder(order: InsertOrder): Promise<IOrder> {
+    await connectToDatabase();
+    const newOrder = new Order(order);
+    await newOrder.save();
+    return newOrder.toObject();
   }
 
-  async createOrderWithItems(order: InsertOrder, items: InsertOrderItem[]): Promise<Order> {
-    return await db.transaction(async (tx) => {
-      const [newOrder] = await tx.insert(orders).values(order).returning();
-      
-      if (items.length > 0) {
-        const orderItemsWithOrderId = items.map(item => ({
-          ...item,
-          orderId: newOrder.id
-        }));
-        await tx.insert(orderItems).values(orderItemsWithOrderId);
-      }
+  async createOrderWithItems(order: InsertOrder, items: InsertOrderItem[]): Promise<IOrder> {
+    await connectToDatabase();
+    // Create order first
+    const newOrder = new Order(order);
+    await newOrder.save();
 
-      // Update user stats if order has userId
-      if (order.userId) {
-        await tx
-          .update(users)
-          .set({
-            totalSpent: sql`${users.totalSpent} + ${order.totalAmount}`,
-            orderCount: sql`${users.orderCount} + 1`,
-            updatedAt: new Date()
-          })
-          .where(eq(users.id, order.userId));
-      }
+    // Create order items
+    const orderItemsWithOrderId = items.map(item => ({
+      ...item,
+      orderId: newOrder._id.toString()
+    }));
 
-      return newOrder;
-    });
+    await OrderItem.insertMany(orderItemsWithOrderId);
+
+    return newOrder.toObject();
   }
 
-  async getOrder(id: string): Promise<Order | undefined> {
-    const [order] = await db.select().from(orders).where(eq(orders.id, id));
+  async getOrder(id: string): Promise<IOrder | undefined> {
+    await connectToDatabase();
+    const order = await Order.findById(id).lean();
     return order || undefined;
   }
 
-  async getOrdersByUser(userId: string): Promise<Order[]> {
-    return await db.select().from(orders).where(eq(orders.userId, userId)).orderBy(desc(orders.createdAt));
+  async getOrdersByUser(userId: string): Promise<IOrder[]> {
+    await connectToDatabase();
+    return await Order.find({ userId }).sort({ createdAt: -1 }).lean();
   }
 
-  async getAllOrders(): Promise<Order[]> {
-    return await db.select().from(orders).orderBy(desc(orders.createdAt));
+  async getAllOrders(): Promise<IOrder[]> {
+    await connectToDatabase();
+    return await Order.find().sort({ createdAt: -1 }).lean();
   }
 
-  async updateOrderStatus(id: string, status: string): Promise<Order | undefined> {
-    const [updatedOrder] = await db
-      .update(orders)
-      .set({ status, updatedAt: new Date() })
-      .where(eq(orders.id, id))
-      .returning();
-    return updatedOrder || undefined;
+  async updateOrderStatus(id: string, status: string): Promise<IOrder | undefined> {
+    await connectToDatabase();
+    const order = await Order.findByIdAndUpdate(
+      id,
+      { status, updatedAt: new Date() },
+      { new: true }
+    );
+    return order?.toObject();
   }
 
   // Order items operations
-  async getOrderItems(orderId: string): Promise<OrderItem[]> {
-    return await db.select().from(orderItems).where(eq(orderItems.orderId, orderId));
-  }
-
-  // User operations
-  async getUser(id: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user || undefined;
-  }
-
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
-    return user || undefined;
-  }
-
-  async getUserByGoogleId(googleId: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.googleId, googleId));
-    return user || undefined;
-  }
-
-  async updateUserGoogleId(userId: string, googleId: string): Promise<User> {
-    const [user] = await db
-      .update(users)
-      .set({ googleId, updatedAt: new Date() })
-      .where(eq(users.id, userId))
-      .returning();
-    return user;
-  }
-
-  async upsertUser(userData: UpsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(userData)
-      .onConflictDoUpdate({
-        target: users.email,
-        set: {
-          ...userData,
-          updatedAt: new Date(),
-        },
-      })
-      .returning();
-    return user;
-  }
-
-  // Review operations
-  async getReviewsByProduct(productId: string): Promise<Review[]> {
-    return await db
-      .select({
-        id: reviews.id,
-        productId: reviews.productId,
-        userId: reviews.userId,
-        rating: reviews.rating,
-        comment: reviews.comment,
-        createdAt: reviews.createdAt,
-        user: {
-          id: users.id,
-          firstName: users.firstName,
-          lastName: users.lastName,
-          email: users.email,
-          profileImageUrl: users.profileImageUrl,
-        }
-      })
-      .from(reviews)
-      .leftJoin(users, eq(reviews.userId, users.id))
-      .where(eq(reviews.productId, productId))
-      .orderBy(desc(reviews.createdAt));
-  }
-
-  async createReview(review: InsertReview): Promise<Review> {
-    const [newReview] = await db.insert(reviews).values(review).returning();
-    return newReview;
-  }
-
-  async getReviewsByUser(userId: string): Promise<Review[]> {
-    return await db
-      .select()
-      .from(reviews)
-      .where(eq(reviews.userId, userId))
-      .orderBy(desc(reviews.createdAt));
+  async getOrderItems(orderId: string): Promise<IOrderItem[]> {
+    await connectToDatabase();
+    return await OrderItem.find({ orderId }).lean();
   }
 
   // Admin operations
   async isUserAdmin(userId: string): Promise<boolean> {
-    const [user] = await db.select({ isAdmin: users.isAdmin }).from(users).where(eq(users.id, userId));
+    await connectToDatabase();
+    const user = await User.findById(userId);
     return user?.isAdmin || false;
   }
 
-  async addToAdminWhitelist(admin: InsertAdminWhitelist): Promise<AdminWhitelist> {
-    const [newAdmin] = await db.insert(adminWhitelist).values(admin).returning();
-    
-    // Update user admin status if they exist
-    await db
-      .update(users)
-      .set({ isAdmin: true, updatedAt: new Date() })
-      .where(eq(users.email, admin.email));
-    
-    return newAdmin;
+  async addToAdminWhitelist(admin: InsertAdminWhitelist): Promise<IAdminWhitelist> {
+    await connectToDatabase();
+    const newAdmin = new AdminWhitelist(admin);
+    await newAdmin.save();
+    return newAdmin.toObject();
   }
 
   async removeFromAdminWhitelist(email: string): Promise<boolean> {
-    const result = await db.delete(adminWhitelist).where(eq(adminWhitelist.email, email));
-    
-    // Update user admin status
-    await db
-      .update(users)
-      .set({ isAdmin: false, updatedAt: new Date() })
-      .where(eq(users.email, email));
-    
-    return (result.rowCount || 0) > 0;
+    await connectToDatabase();
+    const result = await AdminWhitelist.findOneAndDelete({ email });
+    return !!result;
   }
 
-  async getAdminWhitelist(): Promise<AdminWhitelist[]> {
-    return await db.select().from(adminWhitelist).orderBy(desc(adminWhitelist.createdAt));
+  async getAdminWhitelist(): Promise<IAdminWhitelist[]> {
+    await connectToDatabase();
+    return await AdminWhitelist.find().lean();
   }
 
   async getUserStats(): Promise<{ totalUsers: number; totalOrders: number; totalRevenue: string }> {
-    const [userCount] = await db.select({ count: sql<number>`count(*)` }).from(users);
-    const [orderCount] = await db.select({ count: sql<number>`count(*)` }).from(orders);
-    const [revenueSum] = await db.select({ 
-      total: sql<string>`coalesce(sum(${orders.totalAmount}), 0)` 
-    }).from(orders).where(eq(orders.status, 'completed'));
-
+    await connectToDatabase();
+    const totalUsers = await User.countDocuments();
+    const totalOrders = await Order.countDocuments();
+    
+    const revenueResult = await Order.aggregate([
+      { $group: { _id: null, total: { $sum: "$totalAmount" } } }
+    ]);
+    
+    const totalRevenue = revenueResult[0]?.total || 0;
+    
     return {
-      totalUsers: userCount.count,
-      totalOrders: orderCount.count,
-      totalRevenue: revenueSum.total || '0'
+      totalUsers,
+      totalOrders,
+      totalRevenue: totalRevenue.toString()
     };
   }
 
-  async updateUserAdminStatus(userId: string, isAdmin: boolean): Promise<User> {
-    const [user] = await db
-      .update(users)
-      .set({ isAdmin, updatedAt: new Date() })
-      .where(eq(users.id, userId))
-      .returning();
-    return user;
+  async updateUserAdminStatus(userId: string, isAdmin: boolean): Promise<IUser> {
+    await connectToDatabase();
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { isAdmin, updatedAt: new Date() },
+      { new: true }
+    );
+    if (!user) {
+      throw new Error("User not found");
+    }
+    return user.toObject();
   }
 
-  async getAllUsers(): Promise<User[]> {
-    return await db.select().from(users).orderBy(desc(users.createdAt));
+  async getAllUsers(): Promise<IUser[]> {
+    await connectToDatabase();
+    return await User.find().sort({ createdAt: -1 }).lean();
+  }
+
+  // User operations
+  async getUser(id: string): Promise<IUser | undefined> {
+    await connectToDatabase();
+    const user = await User.findById(id).lean();
+    return user || undefined;
+  }
+
+  async getUserByEmail(email: string): Promise<IUser | undefined> {
+    await connectToDatabase();
+    const user = await User.findOne({ email }).lean();
+    return user || undefined;
+  }
+
+  async getUserByGoogleId(googleId: string): Promise<IUser | undefined> {
+    await connectToDatabase();
+    const user = await User.findOne({ googleId }).lean();
+    return user || undefined;
+  }
+
+  async updateUserGoogleId(userId: string, googleId: string): Promise<IUser> {
+    await connectToDatabase();
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { googleId, updatedAt: new Date() },
+      { new: true }
+    );
+    if (!user) {
+      throw new Error("User not found");
+    }
+    return user.toObject();
+  }
+
+  async upsertUser(user: UpsertUser): Promise<IUser> {
+    await connectToDatabase();
+    if (user.email) {
+      const existingUser = await User.findOneAndUpdate(
+        { email: user.email },
+        { ...user, updatedAt: new Date() },
+        { new: true, upsert: true }
+      );
+      return existingUser.toObject();
+    } else if (user.googleId) {
+      const existingUser = await User.findOneAndUpdate(
+        { googleId: user.googleId },
+        { ...user, updatedAt: new Date() },
+        { new: true, upsert: true }
+      );
+      return existingUser.toObject();
+    } else {
+      const newUser = new User({ ...user, createdAt: new Date(), updatedAt: new Date() });
+      await newUser.save();
+      return newUser.toObject();
+    }
+  }
+
+  // Review operations
+  async getReviewsByProduct(productId: string): Promise<IReview[]> {
+    await connectToDatabase();
+    return await Review.find({ productId }).sort({ createdAt: -1 }).lean();
+  }
+
+  async createReview(review: InsertReview): Promise<IReview> {
+    await connectToDatabase();
+    const newReview = new Review(review);
+    await newReview.save();
+    return newReview.toObject();
+  }
+
+  async getReviewsByUser(userId: string): Promise<IReview[]> {
+    await connectToDatabase();
+    return await Review.find({ userId }).sort({ createdAt: -1 }).lean();
   }
 
   // Whitelist request operations
-  async createWhitelistRequest(request: InsertWhitelistRequest): Promise<WhitelistRequest> {
-    const [newRequest] = await db.insert(whitelistRequests).values(request).returning();
-    return newRequest;
+  async createWhitelistRequest(request: InsertWhitelistRequest): Promise<IWhitelistRequest> {
+    await connectToDatabase();
+    const newRequest = new WhitelistRequest(request);
+    await newRequest.save();
+    return newRequest.toObject();
   }
 
-  async getWhitelistRequests(): Promise<WhitelistRequest[]> {
-    return await db.select().from(whitelistRequests).orderBy(desc(whitelistRequests.submittedAt));
+  async getWhitelistRequests(): Promise<IWhitelistRequest[]> {
+    await connectToDatabase();
+    return await WhitelistRequest.find().sort({ submittedAt: -1 }).lean();
   }
 
-  async getWhitelistRequestsByUser(userId: string): Promise<WhitelistRequest[]> {
-    return await db
-      .select()
-      .from(whitelistRequests)
-      .where(eq(whitelistRequests.userId, userId))
-      .orderBy(desc(whitelistRequests.submittedAt));
+  async getWhitelistRequestsByUser(userId: string): Promise<IWhitelistRequest[]> {
+    await connectToDatabase();
+    return await WhitelistRequest.find({ userId }).sort({ submittedAt: -1 }).lean();
   }
 
-  async updateWhitelistRequestStatus(id: string, status: string, reason?: string, processedBy?: string): Promise<WhitelistRequest | undefined> {
-    const [updated] = await db
-      .update(whitelistRequests)
-      .set({ 
+  async updateWhitelistRequestStatus(id: string, status: string, reason?: string, processedBy?: string): Promise<IWhitelistRequest | undefined> {
+    await connectToDatabase();
+    const request = await WhitelistRequest.findByIdAndUpdate(
+      id,
+      { 
         status, 
         reason,
         processedBy,
         processedAt: new Date()
-      })
-      .where(eq(whitelistRequests.id, id))
-      .returning();
-    return updated;
+      },
+      { new: true }
+    );
+    return request?.toObject();
   }
 
-  async getWhitelistRequestByUsername(username: string): Promise<WhitelistRequest | undefined> {
-    const [request] = await db
-      .select()
-      .from(whitelistRequests)
-      .where(eq(whitelistRequests.minecraftUsername, username))
-      .orderBy(desc(whitelistRequests.submittedAt))
-      .limit(1);
-    return request;
+  async getWhitelistRequestByUsername(username: string): Promise<IWhitelistRequest | undefined> {
+    await connectToDatabase();
+    const request = await WhitelistRequest.findOne({ minecraftUsername: username }).lean();
+    return request || undefined;
   }
 
   // Payment confirmation operations
-  async createPaymentConfirmation(confirmation: InsertPaymentConfirmation): Promise<PaymentConfirmation> {
-    const [newConfirmation] = await db.insert(paymentConfirmations).values(confirmation).returning();
-    return newConfirmation;
+  async createPaymentConfirmation(confirmation: InsertPaymentConfirmation): Promise<IPaymentConfirmation> {
+    await connectToDatabase();
+    const newConfirmation = new PaymentConfirmation(confirmation);
+    await newConfirmation.save();
+    return newConfirmation.toObject();
   }
 
-  async getPaymentConfirmationsByOrder(orderId: string): Promise<PaymentConfirmation[]> {
-    return await db.select().from(paymentConfirmations).where(eq(paymentConfirmations.orderId, orderId));
+  async getPaymentConfirmationsByOrder(orderId: string): Promise<IPaymentConfirmation[]> {
+    await connectToDatabase();
+    return await PaymentConfirmation.find({ orderId }).sort({ submittedAt: -1 }).lean();
   }
 
-  async updatePaymentConfirmationStatus(id: string, status: string, reviewedBy?: string, reason?: string): Promise<PaymentConfirmation | undefined> {
-    const [updated] = await db
-      .update(paymentConfirmations)
-      .set({ 
-        status, 
+  async updatePaymentConfirmationStatus(id: string, status: string, reviewedBy?: string, reason?: string): Promise<IPaymentConfirmation | undefined> {
+    await connectToDatabase();
+    const confirmation = await PaymentConfirmation.findByIdAndUpdate(
+      id,
+      {
+        status,
         reviewedBy,
         rejectionReason: reason,
         reviewedAt: new Date()
-      })
-      .where(eq(paymentConfirmations.id, id))
-      .returning();
-    return updated;
+      },
+      { new: true }
+    );
+    return confirmation?.toObject();
   }
 
-  async getAllPaymentConfirmations(): Promise<PaymentConfirmation[]> {
-    return await db.select().from(paymentConfirmations).orderBy(desc(paymentConfirmations.submittedAt));
+  async getAllPaymentConfirmations(): Promise<IPaymentConfirmation[]> {
+    await connectToDatabase();
+    return await PaymentConfirmation.find().sort({ submittedAt: -1 }).lean();
   }
 }
 
-export const storage = new DatabaseStorage();
+// In-memory storage implementation for development/testing
+export class MemStorage implements IStorage {
+  private products: IProduct[] = [];
+  private cartItems: ICartItem[] = [];
+  private orders: IOrder[] = [];
+  private orderItems: IOrderItem[] = [];
+  private adminWhitelist: IAdminWhitelist[] = [];
+  private users: IUser[] = [];
+  private reviews: IReview[] = [];
+  private whitelistRequests: IWhitelistRequest[] = [];
+  private paymentConfirmations: IPaymentConfirmation[] = [];
+
+  private generateId(): string {
+    return Math.random().toString(36).substr(2, 9);
+  }
+
+  // Product operations
+  async getProducts(): Promise<IProduct[]> {
+    return [...this.products];
+  }
+
+  async getProductById(id: string): Promise<IProduct | undefined> {
+    return this.products.find(p => p._id === id);
+  }
+
+  async getProductsByCategory(category: string): Promise<IProduct[]> {
+    return this.products.filter(p => p.category === category);
+  }
+
+  async createProduct(product: InsertProduct): Promise<IProduct> {
+    const newProduct: IProduct = {
+      _id: this.generateId(),
+      ...product,
+    } as IProduct;
+    this.products.push(newProduct);
+    return newProduct;
+  }
+
+  // Cart operations
+  async getCartItems(sessionId: string): Promise<ICartItem[]> {
+    return this.cartItems.filter(item => item.sessionId === sessionId);
+  }
+
+  async addToCart(cartItem: InsertCartItem): Promise<ICartItem> {
+    const existingItem = this.cartItems.find(
+      item => item.sessionId === cartItem.sessionId && item.productId === cartItem.productId
+    );
+
+    if (existingItem) {
+      existingItem.quantity += cartItem.quantity;
+      return existingItem;
+    } else {
+      const newCartItem: ICartItem = {
+        _id: this.generateId(),
+        ...cartItem,
+      } as ICartItem;
+      this.cartItems.push(newCartItem);
+      return newCartItem;
+    }
+  }
+
+  async updateCartItem(id: string, quantity: number): Promise<ICartItem | undefined> {
+    const item = this.cartItems.find(item => item._id === id);
+    if (item) {
+      item.quantity = quantity;
+    }
+    return item;
+  }
+
+  async removeFromCart(id: string): Promise<boolean> {
+    const index = this.cartItems.findIndex(item => item._id === id);
+    if (index > -1) {
+      this.cartItems.splice(index, 1);
+      return true;
+    }
+    return false;
+  }
+
+  async clearCart(sessionId: string): Promise<void> {
+    this.cartItems = this.cartItems.filter(item => item.sessionId !== sessionId);
+  }
+
+  // Order operations
+  async createOrder(order: InsertOrder): Promise<IOrder> {
+    const newOrder: IOrder = {
+      _id: this.generateId(),
+      ...order,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as IOrder;
+    this.orders.push(newOrder);
+    return newOrder;
+  }
+
+  async createOrderWithItems(order: InsertOrder, items: InsertOrderItem[]): Promise<IOrder> {
+    const newOrder = await this.createOrder(order);
+    
+    for (const item of items) {
+      const orderItem: IOrderItem = {
+        _id: this.generateId(),
+        orderId: newOrder._id,
+        ...item,
+      } as IOrderItem;
+      this.orderItems.push(orderItem);
+    }
+
+    return newOrder;
+  }
+
+  async getOrder(id: string): Promise<IOrder | undefined> {
+    return this.orders.find(order => order._id === id);
+  }
+
+  async getOrdersByUser(userId: string): Promise<IOrder[]> {
+    return this.orders.filter(order => order.userId === userId).sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }
+
+  async getAllOrders(): Promise<IOrder[]> {
+    return [...this.orders].sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }
+
+  async updateOrderStatus(id: string, status: string): Promise<IOrder | undefined> {
+    const order = this.orders.find(order => order._id === id);
+    if (order) {
+      order.status = status;
+      order.updatedAt = new Date();
+    }
+    return order;
+  }
+
+  // Order items operations
+  async getOrderItems(orderId: string): Promise<IOrderItem[]> {
+    return this.orderItems.filter(item => item.orderId === orderId);
+  }
+
+  // Admin operations
+  async isUserAdmin(userId: string): Promise<boolean> {
+    const user = this.users.find(u => u._id === userId);
+    return user?.isAdmin || false;
+  }
+
+  async addToAdminWhitelist(admin: InsertAdminWhitelist): Promise<IAdminWhitelist> {
+    const newAdmin: IAdminWhitelist = {
+      _id: this.generateId(),
+      ...admin,
+      createdAt: new Date(),
+    } as IAdminWhitelist;
+    this.adminWhitelist.push(newAdmin);
+    return newAdmin;
+  }
+
+  async removeFromAdminWhitelist(email: string): Promise<boolean> {
+    const index = this.adminWhitelist.findIndex(admin => admin.email === email);
+    if (index > -1) {
+      this.adminWhitelist.splice(index, 1);
+      return true;
+    }
+    return false;
+  }
+
+  async getAdminWhitelist(): Promise<IAdminWhitelist[]> {
+    return [...this.adminWhitelist];
+  }
+
+  async getUserStats(): Promise<{ totalUsers: number; totalOrders: number; totalRevenue: string }> {
+    const totalUsers = this.users.length;
+    const totalOrders = this.orders.length;
+    const totalRevenue = this.orders.reduce((sum, order) => sum + order.totalAmount, 0);
+    
+    return {
+      totalUsers,
+      totalOrders,
+      totalRevenue: totalRevenue.toString()
+    };
+  }
+
+  async updateUserAdminStatus(userId: string, isAdmin: boolean): Promise<IUser> {
+    const user = this.users.find(u => u._id === userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    user.isAdmin = isAdmin;
+    user.updatedAt = new Date();
+    return user;
+  }
+
+  async getAllUsers(): Promise<IUser[]> {
+    return [...this.users].sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }
+
+  // User operations
+  async getUser(id: string): Promise<IUser | undefined> {
+    return this.users.find(user => user._id === id);
+  }
+
+  async getUserByEmail(email: string): Promise<IUser | undefined> {
+    return this.users.find(user => user.email === email);
+  }
+
+  async getUserByGoogleId(googleId: string): Promise<IUser | undefined> {
+    return this.users.find(user => user.googleId === googleId);
+  }
+
+  async updateUserGoogleId(userId: string, googleId: string): Promise<IUser> {
+    const user = this.users.find(u => u._id === userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    user.googleId = googleId;
+    user.updatedAt = new Date();
+    return user;
+  }
+
+  async upsertUser(user: UpsertUser): Promise<IUser> {
+    let existingUser: IUser | undefined;
+    
+    if (user.email) {
+      existingUser = this.users.find(u => u.email === user.email);
+    } else if (user.googleId) {
+      existingUser = this.users.find(u => u.googleId === user.googleId);
+    }
+
+    if (existingUser) {
+      Object.assign(existingUser, user, { updatedAt: new Date() });
+      return existingUser;
+    } else {
+      const newUser: IUser = {
+        _id: this.generateId(),
+        ...user,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as IUser;
+      this.users.push(newUser);
+      return newUser;
+    }
+  }
+
+  // Review operations
+  async getReviewsByProduct(productId: string): Promise<IReview[]> {
+    return this.reviews.filter(review => review.productId === productId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  async createReview(review: InsertReview): Promise<IReview> {
+    const newReview: IReview = {
+      _id: this.generateId(),
+      ...review,
+      createdAt: new Date(),
+    } as IReview;
+    this.reviews.push(newReview);
+    return newReview;
+  }
+
+  async getReviewsByUser(userId: string): Promise<IReview[]> {
+    return this.reviews.filter(review => review.userId === userId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  // Whitelist request operations
+  async createWhitelistRequest(request: InsertWhitelistRequest): Promise<IWhitelistRequest> {
+    const newRequest: IWhitelistRequest = {
+      _id: this.generateId(),
+      ...request,
+      submittedAt: new Date(),
+    } as IWhitelistRequest;
+    this.whitelistRequests.push(newRequest);
+    return newRequest;
+  }
+
+  async getWhitelistRequests(): Promise<IWhitelistRequest[]> {
+    return [...this.whitelistRequests].sort((a, b) => 
+      new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()
+    );
+  }
+
+  async getWhitelistRequestsByUser(userId: string): Promise<IWhitelistRequest[]> {
+    return this.whitelistRequests.filter(request => request.userId === userId)
+      .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+  }
+
+  async updateWhitelistRequestStatus(id: string, status: string, reason?: string, processedBy?: string): Promise<IWhitelistRequest | undefined> {
+    const request = this.whitelistRequests.find(r => r._id === id);
+    if (request) {
+      request.status = status;
+      request.reason = reason;
+      request.processedBy = processedBy;
+      request.processedAt = new Date();
+    }
+    return request;
+  }
+
+  async getWhitelistRequestByUsername(username: string): Promise<IWhitelistRequest | undefined> {
+    return this.whitelistRequests.find(request => request.minecraftUsername === username);
+  }
+
+  // Payment confirmation operations
+  async createPaymentConfirmation(confirmation: InsertPaymentConfirmation): Promise<IPaymentConfirmation> {
+    const newConfirmation: IPaymentConfirmation = {
+      _id: this.generateId(),
+      ...confirmation,
+      submittedAt: new Date(),
+    } as IPaymentConfirmation;
+    this.paymentConfirmations.push(newConfirmation);
+    return newConfirmation;
+  }
+
+  async getPaymentConfirmationsByOrder(orderId: string): Promise<IPaymentConfirmation[]> {
+    return this.paymentConfirmations.filter(confirmation => confirmation.orderId === orderId)
+      .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+  }
+
+  async updatePaymentConfirmationStatus(id: string, status: string, reviewedBy?: string, reason?: string): Promise<IPaymentConfirmation | undefined> {
+    const confirmation = this.paymentConfirmations.find(c => c._id === id);
+    if (confirmation) {
+      confirmation.status = status;
+      confirmation.reviewedBy = reviewedBy;
+      confirmation.rejectionReason = reason;
+      confirmation.reviewedAt = new Date();
+    }
+    return confirmation;
+  }
+
+  async getAllPaymentConfirmations(): Promise<IPaymentConfirmation[]> {
+    return [...this.paymentConfirmations].sort((a, b) => 
+      new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()
+    );
+  }
+}
+
+// Export the storage instance based on environment
+// For now, we'll use in-memory storage in development since MongoDB setup is complex in Replit
+export const storage: IStorage = process.env.NODE_ENV === 'development'
+  ? new MemStorage()
+  : new DatabaseStorage();

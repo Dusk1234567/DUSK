@@ -26,9 +26,9 @@ Preferred communication style: Simple, everyday language.
 - **Error Handling**: Centralized error middleware with proper HTTP status codes
 
 ### Data Storage Solutions
-- **Database**: PostgreSQL (configured via Drizzle)
-- **ORM**: Drizzle ORM with Neon database connector
-- **Schema Management**: Drizzle Kit for migrations and schema updates
+- **Database**: MongoDB (configured via Mongoose)
+- **ORM**: Mongoose ODM for MongoDB integration
+- **Schema Management**: Mongoose schemas with validation
 - **Development Storage**: In-memory storage class for development/testing
 
 ### UI/UX Design
@@ -75,7 +75,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Backend Dependencies
 - **Server**: Express.js, Node.js built-ins (crypto, path, fs)
-- **Database**: Drizzle ORM, Neon serverless connector, connect-pg-simple
+- **Database**: Mongoose ODM for MongoDB integration
 - **Development**: TSX for TypeScript execution, Vite integration
 - **Utilities**: Date-fns for date handling, Zod for validation
 
@@ -99,7 +99,7 @@ Preferred communication style: Simple, everyday language.
 - **Database**: Production Neon database with proper connection management
 
 ### Environment Configuration
-- **Database**: `DATABASE_URL` environment variable required
+- **Database**: `MONGODB_URL` environment variable (falls back to local MongoDB)
 - **Session Management**: In-memory sessions for development, database-backed for production
 - **Asset Serving**: Development uses Vite middleware, production serves static files
 - **Error Handling**: Development shows detailed errors, production returns sanitized responses
@@ -116,6 +116,14 @@ Preferred communication style: Simple, everyday language.
 8. **Query Management**: TanStack Query handles caching, loading states, and error management
 
 ### Recent Changes
+
+- **July 27, 2025**: Successfully migrated database from PostgreSQL to MongoDB
+  - Replaced Drizzle ORM with Mongoose ODM for better NoSQL document management
+  - Updated all database schemas to use MongoDB document structure with proper TypeScript interfaces
+  - Converted storage layer to work with MongoDB collections and Mongoose methods
+  - Maintained backward compatibility with existing API endpoints and frontend code
+  - Database setup now uses in-memory storage for development and MongoDB for production
+  - Updated environment configuration to use MONGODB_URL instead of DATABASE_URL
 
 - **July 27, 2025**: Added comprehensive order management system
   - Created separate order lookup page requiring email verification for security

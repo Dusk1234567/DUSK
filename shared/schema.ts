@@ -1,258 +1,348 @@
-import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, decimal, integer, boolean, timestamp, index, jsonb } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
-import { createInsertSchema } from "drizzle-zod";
+import mongoose, { Schema, Document } from "mongoose";
 import { z } from "zod";
 
-export const products = pgTable("products", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull(),
-  description: text("description").notNull(),
-  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
-  category: varchar("category", { length: 50 }).notNull(), // 'ranks' or 'coins'
-  imageUrl: text("image_url").notNull(),
-  badge: text("badge"), // POPULAR, PREMIUM, etc.
-  badgeColor: text("badge_color"), // Color for the badge
-  buttonColor: text("button_color"), // Color for the buy button
-  featured: boolean("featured").default(false),
-  coinAmount: integer("coin_amount"), // For coin products
-  rankLevel: text("rank_level"), // For rank products
-  bonusText: text("bonus_text"), // Bonus information like "+20% Bonus"
+// Product interface and schema
+export interface IProduct extends Document {
+  _id: string;
+  name: string;
+  description: string;
+  price: number;
+  category: string; // 'ranks' or 'coins'
+  imageUrl: string;
+  badge?: string; // POPULAR, PREMIUM, etc.
+  badgeColor?: string; // Color for the badge
+  buttonColor?: string; // Color for the buy button
+  featured: boolean;
+  coinAmount?: number; // For coin products
+  rankLevel?: string; // For rank products
+  bonusText?: string; // Bonus information like "+20% Bonus"
+}
+
+const productSchema = new Schema<IProduct>({
+  name: { type: String, required: true },
+  description: { type: String, required: true },
+  price: { type: Number, required: true },
+  category: { type: String, required: true, maxlength: 50 },
+  imageUrl: { type: String, required: true },
+  badge: { type: String },
+  badgeColor: { type: String },
+  buttonColor: { type: String },
+  featured: { type: Boolean, default: false },
+  coinAmount: { type: Number },
+  rankLevel: { type: String },
+  bonusText: { type: String },
 });
 
-export const cartItems = pgTable("cart_items", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  sessionId: text("session_id").notNull(),
-  productId: text("product_id").notNull(),
-  quantity: integer("quantity").notNull().default(1),
+export const Product = mongoose.model<IProduct>("Product", productSchema);
+
+// Cart Item interface and schema
+export interface ICartItem extends Document {
+  _id: string;
+  sessionId: string;
+  productId: string;
+  quantity: number;
+}
+
+const cartItemSchema = new Schema<ICartItem>({
+  sessionId: { type: String, required: true },
+  productId: { type: String, required: true },
+  quantity: { type: Number, required: true, default: 1 },
 });
 
-export const orders = pgTable("orders", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  sessionId: text("session_id"),
-  userId: varchar("user_id"), // Link to authenticated users
-  totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
-  status: varchar("status", { length: 50 }).notNull().default("pending"),
-  playerName: varchar("player_name"), // Minecraft username
-  email: varchar("email").notNull(), // Contact email (required)
-  paymentMethod: varchar("payment_method").default("pending"),
-  transactionId: varchar("transaction_id"),
-  items: jsonb("items").notNull(), // Store order items as JSON
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+export const CartItem = mongoose.model<ICartItem>("CartItem", cartItemSchema);
+
+// Order interface and schema
+export interface IOrder extends Document {
+  _id: string;
+  sessionId?: string;
+  userId?: string; // Link to authenticated users
+  totalAmount: number;
+  status: string;
+  playerName?: string; // Minecraft username
+  email: string; // Contact email (required)
+  paymentMethod?: string;
+  transactionId?: string;
+  items: any[]; // Store order items as array
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const orderSchema = new Schema<IOrder>({
+  sessionId: { type: String },
+  userId: { type: String }, // Link to authenticated users
+  totalAmount: { type: Number, required: true },
+  status: { type: String, required: true, default: "pending" },
+  playerName: { type: String }, // Minecraft username
+  email: { type: String, required: true }, // Contact email (required)
+  paymentMethod: { type: String, default: "pending" },
+  transactionId: { type: String },
+  items: { type: [Schema.Types.Mixed], required: true }, // Store order items as array
+}, { timestamps: true });
+
+export const Order = mongoose.model<IOrder>("Order", orderSchema);
+
+// Admin whitelist interface and schema
+export interface IAdminWhitelist extends Document {
+  _id: string;
+  email: string;
+  role: string; // admin, moderator
+  addedBy?: string;
+  createdAt: Date;
+}
+
+const adminWhitelistSchema = new Schema<IAdminWhitelist>({
+  email: { type: String, unique: true, required: true },
+  role: { type: String, required: true, default: "admin" },
+  addedBy: { type: String },
+}, { timestamps: true });
+
+export const AdminWhitelist = mongoose.model<IAdminWhitelist>("AdminWhitelist", adminWhitelistSchema);
+
+// Order items interface and schema
+export interface IOrderItem extends Document {
+  _id: string;
+  orderId: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
+const orderItemSchema = new Schema<IOrderItem>({
+  orderId: { type: String, required: true },
+  productId: { type: String, required: true },
+  productName: { type: String, required: true },
+  quantity: { type: Number, required: true },
+  unitPrice: { type: Number, required: true },
+  totalPrice: { type: Number, required: true },
 });
 
-// Admin whitelist table
-export const adminWhitelist = pgTable("admin_whitelist", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  email: varchar("email").unique().notNull(),
-  role: varchar("role", { length: 50 }).notNull().default("admin"), // admin, moderator
-  addedBy: varchar("added_by"),
-  createdAt: timestamp("created_at").defaultNow(),
+export const OrderItem = mongoose.model<IOrderItem>("OrderItem", orderItemSchema);
+
+// Session interface and schema
+export interface ISession extends Document {
+  _id: string;
+  sid: string;
+  sess: any;
+  expire: Date;
+}
+
+const sessionSchema = new Schema<ISession>({
+  sid: { type: String, required: true, unique: true },
+  sess: { type: Schema.Types.Mixed, required: true },
+  expire: { type: Date, required: true, index: true },
 });
 
-// Order items table for detailed tracking
-export const orderItems = pgTable("order_items", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  orderId: varchar("order_id").notNull(),
-  productId: varchar("product_id").notNull(),
-  productName: text("product_name").notNull(),
-  quantity: integer("quantity").notNull(),
-  unitPrice: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
-  totalPrice: decimal("total_price", { precision: 10, scale: 2 }).notNull(),
+export const Session = mongoose.model<ISession>("Session", sessionSchema);
+
+// Payment confirmations interface and schema
+export interface IPaymentConfirmation extends Document {
+  _id: string;
+  orderId: string;
+  screenshotPath: string;
+  status: string; // pending, approved, rejected
+  submittedAt: Date;
+  reviewedAt?: Date;
+  reviewedBy?: string; // Admin user ID who reviewed
+  rejectionReason?: string;
+}
+
+const paymentConfirmationSchema = new Schema<IPaymentConfirmation>({
+  orderId: { type: String, required: true },
+  screenshotPath: { type: String, required: true },
+  status: { type: String, required: true, default: "pending" },
+  submittedAt: { type: Date, default: Date.now },
+  reviewedAt: { type: Date },
+  reviewedBy: { type: String }, // Admin user ID who reviewed
+  rejectionReason: { type: String },
 });
 
-// Session storage table for authentication
-export const sessions = pgTable(
-  "sessions",
-  {
-    sid: varchar("sid").primaryKey(),
-    sess: jsonb("sess").notNull(),
-    expire: timestamp("expire").notNull(),
-  },
-  (table) => [index("IDX_session_expire").on(table.expire)],
-);
+export const PaymentConfirmation = mongoose.model<IPaymentConfirmation>("PaymentConfirmation", paymentConfirmationSchema);
 
-// Payment confirmations table for QR payments
-export const paymentConfirmations = pgTable("payment_confirmations", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  orderId: varchar("order_id").notNull(),
-  screenshotPath: text("screenshot_path").notNull(),
-  status: varchar("status", { length: 50 }).notNull().default("pending"), // pending, approved, rejected
-  submittedAt: timestamp("submitted_at").defaultNow(),
-  reviewedAt: timestamp("reviewed_at"),
-  reviewedBy: varchar("reviewed_by"), // Admin user ID who reviewed
-  rejectionReason: text("rejection_reason"),
+// User interface and schema
+export interface IUser extends Document {
+  _id: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  profileImageUrl?: string;
+  passwordHash?: string; // For email/password auth
+  googleId?: string; // For Google OAuth
+  minecraftUsername?: string; // Minecraft player name
+  isAdmin: boolean;
+  totalSpent: number;
+  orderCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const userSchema = new Schema<IUser>({
+  email: { type: String, unique: true },
+  firstName: { type: String },
+  lastName: { type: String },
+  profileImageUrl: { type: String },
+  passwordHash: { type: String }, // For email/password auth
+  googleId: { type: String, unique: true }, // For Google OAuth
+  minecraftUsername: { type: String }, // Minecraft player name
+  isAdmin: { type: Boolean, default: false },
+  totalSpent: { type: Number, default: 0 },
+  orderCount: { type: Number, default: 0 },
+}, { timestamps: true });
+
+export const User = mongoose.model<IUser>("User", userSchema);
+
+// Reviews interface and schema
+export interface IReview extends Document {
+  _id: string;
+  userId: string;
+  productId: string;
+  rating: number; // 1-5 stars
+  comment: string;
+  createdAt: Date;
+}
+
+const reviewSchema = new Schema<IReview>({
+  userId: { type: String, required: true },
+  productId: { type: String, required: true },
+  rating: { type: Number, required: true }, // 1-5 stars
+  comment: { type: String, required: true },
+}, { timestamps: true });
+
+export const Review = mongoose.model<IReview>("Review", reviewSchema);
+
+// Minecraft whitelist requests interface and schema
+export interface IWhitelistRequest extends Document {
+  _id: string;
+  minecraftUsername: string;
+  email?: string;
+  discordUsername?: string;
+  userId?: string; // Link to authenticated users
+  status: string; // pending, approved, rejected
+  reason?: string; // Reason for rejection or admin notes
+  submittedAt: Date;
+  processedAt?: Date;
+  processedBy?: string; // Admin who processed the request
+}
+
+const whitelistRequestSchema = new Schema<IWhitelistRequest>({
+  minecraftUsername: { type: String, required: true },
+  email: { type: String },
+  discordUsername: { type: String },
+  userId: { type: String }, // Link to authenticated users
+  status: { type: String, required: true, default: "pending" },
+  reason: { type: String }, // Reason for rejection or admin notes
+  submittedAt: { type: Date, default: Date.now },
+  processedAt: { type: Date },
+  processedBy: { type: String }, // Admin who processed the request
 });
 
-// User table for authentication
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  email: varchar("email").unique(),
-  firstName: varchar("first_name"),
-  lastName: varchar("last_name"),
-  profileImageUrl: varchar("profile_image_url"),
-  passwordHash: varchar("password_hash"), // For email/password auth
-  googleId: varchar("google_id").unique(), // For Google OAuth
-  minecraftUsername: varchar("minecraft_username"), // Minecraft player name
-  isAdmin: boolean("is_admin").default(false),
-  totalSpent: decimal("total_spent", { precision: 10, scale: 2 }).default("0.00"),
-  orderCount: integer("order_count").default(0),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+export const WhitelistRequest = mongoose.model<IWhitelistRequest>("WhitelistRequest", whitelistRequestSchema);
+
+// Zod schemas for validation
+export const insertProductSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  price: z.number(),
+  category: z.string().max(50),
+  imageUrl: z.string(),
+  badge: z.string().optional(),
+  badgeColor: z.string().optional(),
+  buttonColor: z.string().optional(),
+  featured: z.boolean().default(false),
+  coinAmount: z.number().optional(),
+  rankLevel: z.string().optional(),
+  bonusText: z.string().optional(),
 });
 
-// Reviews table
-export const reviews = pgTable("reviews", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull(),
-  productId: varchar("product_id").notNull(),
-  rating: integer("rating").notNull(), // 1-5 stars
-  comment: text("comment").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
+export const insertCartItemSchema = z.object({
+  sessionId: z.string(),
+  productId: z.string(),
+  quantity: z.number().default(1),
 });
 
-// Minecraft whitelist requests table
-export const whitelistRequests = pgTable("whitelist_requests", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  minecraftUsername: varchar("minecraft_username").notNull(),
-  email: varchar("email"),
-  discordUsername: varchar("discord_username"),
-  userId: varchar("user_id"), // Link to authenticated users
-  status: varchar("status", { length: 50 }).notNull().default("pending"), // pending, approved, rejected
-  reason: text("reason"), // Reason for rejection or admin notes
-  submittedAt: timestamp("submitted_at").defaultNow(),
-  processedAt: timestamp("processed_at"),
-  processedBy: varchar("processed_by"), // Admin who processed the request
+export const insertOrderSchema = z.object({
+  sessionId: z.string().optional(),
+  userId: z.string().optional(),
+  totalAmount: z.number(),
+  status: z.string().default("pending"),
+  playerName: z.string().optional(),
+  email: z.string(),
+  paymentMethod: z.string().default("pending"),
+  transactionId: z.string().optional(),
+  items: z.array(z.any()),
 });
 
-// Relations
-export const usersRelations = relations(users, ({ many }) => ({
-  reviews: many(reviews),
-  orders: many(orders),
-}));
-
-export const ordersRelations = relations(orders, ({ one, many }) => ({
-  user: one(users, {
-    fields: [orders.userId],
-    references: [users.id],
-  }),
-  orderItems: many(orderItems),
-}));
-
-export const orderItemsRelations = relations(orderItems, ({ one }) => ({
-  order: one(orders, {
-    fields: [orderItems.orderId],
-    references: [orders.id],
-  }),
-  product: one(products, {
-    fields: [orderItems.productId],
-    references: [products.id],
-  }),
-}));
-
-export const reviewsRelations = relations(reviews, ({ one }) => ({
-  user: one(users, {
-    fields: [reviews.userId],
-    references: [users.id],
-  }),
-  product: one(products, {
-    fields: [reviews.productId],
-    references: [products.id],
-  }),
-}));
-
-export const productsRelations = relations(products, ({ many }) => ({
-  reviews: many(reviews),
-  orderItems: many(orderItems),
-}));
-
-export const adminWhitelistRelations = relations(adminWhitelist, ({ one }) => ({
-  addedByUser: one(users, {
-    fields: [adminWhitelist.addedBy],
-    references: [users.id],
-  }),
-}));
-
-export const whitelistRequestsRelations = relations(whitelistRequests, ({ one }) => ({
-  user: one(users, {
-    fields: [whitelistRequests.userId],
-    references: [users.id],
-  }),
-  processedByUser: one(users, {
-    fields: [whitelistRequests.processedBy],
-    references: [users.id],
-  }),
-}));
-
-export const insertProductSchema = createInsertSchema(products).omit({
-  id: true,
+export const insertOrderItemSchema = z.object({
+  orderId: z.string(),
+  productId: z.string(),
+  productName: z.string(),
+  quantity: z.number(),
+  unitPrice: z.number(),
+  totalPrice: z.number(),
 });
 
-export const insertCartItemSchema = createInsertSchema(cartItems).omit({
-  id: true,
+export const insertAdminWhitelistSchema = z.object({
+  email: z.string().email(),
+  role: z.string().default("admin"),
+  addedBy: z.string().optional(),
 });
 
-export const insertOrderSchema = createInsertSchema(orders).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
+export const upsertUserSchema = z.object({
+  email: z.string().email().optional(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  profileImageUrl: z.string().optional(),
+  passwordHash: z.string().optional(),
+  googleId: z.string().optional(),
+  minecraftUsername: z.string().optional(),
+  isAdmin: z.boolean().default(false),
+  totalSpent: z.number().default(0),
+  orderCount: z.number().default(0),
 });
 
-export const insertOrderItemSchema = createInsertSchema(orderItems).omit({
-  id: true,
-});
-
-export const insertAdminWhitelistSchema = createInsertSchema(adminWhitelist).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const upsertUserSchema = createInsertSchema(users).omit({
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertReviewSchema = createInsertSchema(reviews).omit({
-  id: true,
-  createdAt: true,
-}).extend({
+export const insertReviewSchema = z.object({
+  userId: z.string(),
+  productId: z.string(),
   rating: z.number().min(1).max(5),
   comment: z.string().min(1).max(500),
 });
 
-export const insertWhitelistRequestSchema = createInsertSchema(whitelistRequests).omit({
-  id: true,
-  submittedAt: true,
-  processedAt: true,
-}).extend({
+export const insertWhitelistRequestSchema = z.object({
   minecraftUsername: z.string().min(3).max(16).regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
   email: z.string().email().optional(),
   discordUsername: z.string().max(32).optional(),
+  userId: z.string().optional(),
+  status: z.string().default("pending"),
+  reason: z.string().optional(),
 });
 
+export const insertPaymentConfirmationSchema = z.object({
+  orderId: z.string(),
+  screenshotPath: z.string(),
+  status: z.string().default("pending"),
+  reviewedBy: z.string().optional(),
+  rejectionReason: z.string().optional(),
+});
+
+// Type exports
 export type InsertProduct = z.infer<typeof insertProductSchema>;
-export type Product = typeof products.$inferSelect;
 export type InsertCartItem = z.infer<typeof insertCartItemSchema>;
-export type CartItem = typeof cartItems.$inferSelect;
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
-export type Order = typeof orders.$inferSelect;
 export type InsertOrderItem = z.infer<typeof insertOrderItemSchema>;
-export type OrderItem = typeof orderItems.$inferSelect;
 export type InsertAdminWhitelist = z.infer<typeof insertAdminWhitelistSchema>;
-export type AdminWhitelist = typeof adminWhitelist.$inferSelect;
 export type UpsertUser = z.infer<typeof upsertUserSchema>;
-export type User = typeof users.$inferSelect;
 export type InsertReview = z.infer<typeof insertReviewSchema>;
-export type Review = typeof reviews.$inferSelect;
 export type InsertWhitelistRequest = z.infer<typeof insertWhitelistRequestSchema>;
-export type WhitelistRequest = typeof whitelistRequests.$inferSelect;
-
-// Payment confirmation schemas
-export const insertPaymentConfirmationSchema = createInsertSchema(paymentConfirmations).omit({
-  id: true,
-  submittedAt: true,
-  reviewedAt: true,
-});
 export type InsertPaymentConfirmation = z.infer<typeof insertPaymentConfirmationSchema>;
-export type PaymentConfirmation = typeof paymentConfirmations.$inferSelect;
+
+// Export document types for backward compatibility
+export type Product = IProduct;
+export type CartItem = ICartItem;
+export type Order = IOrder;
+export type OrderItem = IOrderItem;
+export type AdminWhitelist = IAdminWhitelist;
+export type User = IUser;
+export type Review = IReview;
+export type WhitelistRequest = IWhitelistRequest;
+export type PaymentConfirmation = IPaymentConfirmation;
