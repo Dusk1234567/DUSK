@@ -4,11 +4,15 @@ import { storage } from "./storage";
 import type { Express } from "express";
 
 export function setupGoogleAuth(app: Express) {
+  // Get the current domain for OAuth callback
+  const domain = process.env.REPLIT_DOMAINS?.split(',')[0];
+  const callbackURL = domain ? `https://${domain}/api/auth/google/callback` : "/api/auth/google/callback";
+  
   // Google OAuth Strategy
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID!,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    callbackURL: "/api/auth/google/callback"
+    callbackURL: callbackURL
   },
   async (accessToken, refreshToken, profile, done) => {
     try {
