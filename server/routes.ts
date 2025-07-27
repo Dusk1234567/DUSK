@@ -263,7 +263,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied" });
       }
       
-      res.json(order);
+      // Parse items JSON string back to array for frontend
+      const parsedOrder = {
+        ...order,
+        items: order.items ? JSON.parse(order.items) : []
+      };
+      
+      res.json(parsedOrder);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch order" });
     }
@@ -288,7 +294,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Order not found" });
       }
       
-      res.json(order);
+      // Parse items JSON string back to array for frontend
+      const parsedOrder = {
+        ...order,
+        items: order.items ? JSON.parse(order.items) : []
+      };
+      
+      res.json(parsedOrder);
     } catch (error) {
       console.error("Order lookup error:", error);
       res.status(500).json({ message: "Failed to lookup order" });
@@ -343,7 +355,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.userId;
       const orders = await storage.getOrdersByUser(userId);
-      res.json(orders);
+      
+      // Parse items JSON string back to array for frontend
+      const parsedOrders = orders.map(order => ({
+        ...order,
+        items: order.items ? JSON.parse(order.items) : []
+      }));
+      
+      res.json(parsedOrders);
     } catch (error) {
       console.error("Error fetching user orders:", error);
       res.status(500).json({ message: "Failed to fetch orders" });
@@ -557,7 +576,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/admin/orders', isAdmin, async (req, res) => {
     try {
       const orders = await storage.getAllOrders();
-      res.json(orders);
+      
+      // Parse items JSON string back to array for frontend
+      const parsedOrders = orders.map(order => ({
+        ...order,
+        items: order.items ? JSON.parse(order.items) : []
+      }));
+      
+      res.json(parsedOrders);
     } catch (error) {
       console.error("Error fetching orders:", error);
       res.status(500).json({ message: "Failed to fetch orders" });
@@ -619,7 +645,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!updatedOrder) {
         return res.status(404).json({ message: "Order not found" });
       }
-      res.json(updatedOrder);
+      
+      // Parse items JSON string back to array for frontend
+      const parsedOrder = {
+        ...updatedOrder,
+        items: updatedOrder.items ? JSON.parse(updatedOrder.items) : []
+      };
+      
+      res.json(parsedOrder);
     } catch (error) {
       console.error("Error updating order status:", error);
       res.status(500).json({ message: "Failed to update order status" });
