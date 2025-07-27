@@ -235,10 +235,15 @@ class MongoStorage implements IStorage {
   }
 
   async createProduct(product: InsertProduct): Promise<IProduct> {
-    await connectToDatabase();
-    const newProduct = new ProductModel(product);
-    const saved = await newProduct.save();
-    return toPlainObject(saved);
+    try {
+      await connectToDatabase();
+      const newProduct = new ProductModel(product);
+      const saved = await newProduct.save();
+      return toPlainObject(saved);
+    } catch (error) {
+      console.log('MongoDB unavailable, using memory storage');
+      return memoryStorage.createProduct(product);
+    }
   }
 
   async getCartItems(sessionId: string): Promise<ICartItem[]> {
