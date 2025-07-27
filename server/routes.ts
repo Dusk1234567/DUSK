@@ -370,34 +370,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Public order tracking endpoint - allows anyone to view order details by order ID
-  app.get("/api/orders/public/:id", async (req, res) => {
-    try {
-      const order = await storage.getOrder(req.params.id);
-      if (!order) {
-        // In development with memory storage, orders are lost on server restart
-        const allOrders = await storage.getAllOrders();
-        if (allOrders.length === 0) {
-          return res.status(404).json({ 
-            message: "Order not found", 
-            note: "Memory storage mode: Orders are cleared on server restart. Please place a new order to test tracking."
-          });
-        }
-        return res.status(404).json({ message: "Order not found" });
-      }
-      
-      // Parse items JSON string back to array for frontend
-      const parsedOrder = {
-        ...order,
-        items: order.items ? JSON.parse(order.items) : []
-      };
-      
-      res.json(parsedOrder);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch order" });
-    }
-  });
-
   // Order lookup with email verification
   app.get("/api/orders/lookup", async (req, res) => {
     try {
