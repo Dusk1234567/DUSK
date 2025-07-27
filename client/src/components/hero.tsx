@@ -35,6 +35,13 @@ export default function Hero() {
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up stagger-3">
           <Button
+            onClick={() => window.location.href = "/order-lookup"}
+            className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-4 text-lg font-bold transition-all duration-300 hover-lift animate-scale-in stagger-0 click-effect shadow-lg hover:shadow-orange-500/25"
+          >
+            <Shield className="h-5 w-5 mr-2 hover-rotate transition-transform duration-300" />
+            Track Your Order
+          </Button>
+          <Button
             onClick={scrollToProducts}
             className="bg-minecraft-green hover:bg-minecraft-dark-green text-dark-slate px-8 py-4 text-lg font-bold transition-all duration-300 animate-glow hover-lift animate-scale-in stagger-1 click-effect"
           >
