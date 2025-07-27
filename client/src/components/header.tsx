@@ -88,7 +88,7 @@ export default function Header() {
                 Whitelist
               </button>
             </Link>
-            <Link href="/order-lookup">
+            <Link href="/order-status">
               <button 
                 className="font-medium transition-all duration-300 hover-scale animate-slide-in-left stagger-3.5 border border-orange-500 px-4 py-2 rounded bg-orange-600 hover:bg-orange-700 text-white font-bold shadow-lg hover:shadow-orange-500/25"
               >
@@ -231,7 +231,7 @@ export default function Header() {
                   Whitelist
                 </button>
               </Link>
-              <Link href="/order-lookup">
+              <Link href="/order-status">
                 <button 
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="text-left transition-colors duration-300 w-full font-bold border px-4 py-3 rounded bg-orange-600 hover:bg-orange-700 text-white shadow-lg"

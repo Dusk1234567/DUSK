@@ -17,7 +17,6 @@ import Checkout from "@/pages/checkout";
 import OrderPage from "@/pages/order";
 import Orders from "@/pages/orders";
 import OrderStatus from "@/pages/order-status";
-import OrderLookup from "@/pages/order-lookup";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -33,7 +32,6 @@ function Router() {
       <Route path="/checkout" component={Checkout} />
       <Route path="/orders" component={Orders} />
       <Route path="/order-status" component={OrderStatus} />
-      <Route path="/order-lookup" component={OrderLookup} />
       <Route path="/order/:orderId">
         {(params) => <OrderPage orderId={params.orderId} />}
       </Route>

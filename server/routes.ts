@@ -363,38 +363,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Order lookup with email verification
-  app.get("/api/orders/lookup", async (req, res) => {
-    try {
-      const { email, orderId } = req.query;
-      
-      if (!email || !orderId) {
-        return res.status(400).json({ message: "Email and Order ID are required" });
-      }
-      
-      const order = await storage.getOrder(orderId as string);
-      
-      if (!order) {
-        return res.status(404).json({ message: "Order not found" });
-      }
-      
-      // Verify email matches the order (case insensitive)
-      if (order.email.toLowerCase() !== (email as string).toLowerCase()) {
-        return res.status(404).json({ message: "Order not found" });
-      }
-      
-      // Parse items JSON string back to array for frontend
-      const parsedOrder = {
-        ...order,
-        items: typeof order.items === 'string' ? JSON.parse(order.items) : order.items || []
-      };
-      
-      res.json(parsedOrder);
-    } catch (error) {
-      console.error("Order lookup error:", error);
-      res.status(500).json({ message: "Failed to lookup order" });
-    }
-  });
+
 
   // Cancel order
   app.put("/api/orders/:id/cancel", async (req, res) => {
