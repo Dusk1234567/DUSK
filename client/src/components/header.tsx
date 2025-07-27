@@ -88,6 +88,14 @@ export default function Header() {
                 Whitelist
               </button>
             </Link>
+            <Link href="/order-status">
+              <button 
+                className="font-medium transition-all duration-300 hover-scale animate-slide-in-left stagger-3.5 border border-cyan-500 px-3 py-1 rounded bg-cyan-500/20"
+                style={{color: 'white', borderColor: '#06b6d4'}}
+              >
+                Order Status
+              </button>
+            </Link>
             <button 
               onClick={() => scrollToSection('testimonials')}
               className="font-medium transition-all duration-300 hover-scale animate-slide-in-left stagger-4"
@@ -221,6 +229,15 @@ export default function Header() {
                   style={{color: 'white', borderColor: '#22c55e', backgroundColor: 'rgba(34, 197, 94, 0.2)'}}
                 >
                   Whitelist
+                </button>
+              </Link>
+              <Link href="/order-status">
+                <button 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="text-left transition-colors duration-300 w-full font-medium border px-3 py-2 rounded"
+                  style={{color: 'white', borderColor: '#06b6d4', backgroundColor: 'rgba(6, 182, 212, 0.2)'}}
+                >
+                  Order Status
                 </button>
               </Link>
               <button 
