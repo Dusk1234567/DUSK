@@ -4,7 +4,7 @@ This guide specifically addresses Windows-specific setup issues and solutions.
 
 ## Quick Fix for NODE_ENV Error
 
-If you get `'NODE_ENV' is not recognized as an internal or external command`, here are your options:
+If you get `'NODE_ENV' is not recognized as an internal or external command` or `Environment variable REPLIT_DOMAINS not provided`, here are your solutions:
 
 ### Option 1: Use npx cross-env (Recommended)
 ```cmd

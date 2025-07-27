@@ -10,12 +10,14 @@ import { storage } from "./storage";
 
 const MemoryStoreSession = MemoryStore(session);
 
-if (!process.env.REPLIT_DOMAINS) {
-  throw new Error("Environment variable REPLIT_DOMAINS not provided");
-}
+// Check if we're in a Replit environment
+const isReplitEnvironment = !!process.env.REPL_ID || !!process.env.REPLIT_DOMAINS;
 
 const getOidcConfig = memoize(
   async () => {
+    if (!isReplitEnvironment) {
+      throw new Error("Replit authentication is only available in Replit environment");
+    }
     return await client.discovery(
       new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
       process.env.REPL_ID!
@@ -71,6 +73,12 @@ export async function setupAuth(app: Express) {
   app.use(getSession());
   app.use(passport.initialize());
   app.use(passport.session());
+
+  // Only setup Replit authentication if we're in a Replit environment
+  if (!isReplitEnvironment) {
+    console.log("Replit authentication disabled (not in Replit environment)");
+    return;
+  }
 
   const config = await getOidcConfig();
 
