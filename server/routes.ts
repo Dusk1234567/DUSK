@@ -221,12 +221,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const orderData = insertOrderSchema.parse({
         sessionId,
         userId,
-        totalAmount: totalAmount.toFixed(2),
+        totalAmount: totalAmount,
         status: "pending",
         playerName: playerName?.trim(),
         email: email?.trim(),
         paymentMethod: paymentMethod || "pending",
-        items: orderItems
+        items: JSON.stringify(orderItems)
       });
 
       const order = await storage.createOrder(orderData);
