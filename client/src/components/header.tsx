@@ -61,7 +61,7 @@ export default function Header() {
           <div className="flex items-center space-x-4">
             <div className="text-2xl font-bold minecraft-green animate-scale-in hover-glow transition-all duration-300 cursor-pointer">
               <i className="fas fa-cube mr-2 animate-wiggle"></i>
-              LifeSteal Shop
+              LIFESTEAL
             </div>
           </div>
           
@@ -206,6 +206,14 @@ export default function Header() {
               >
                 Products
               </button>
+              <Link href="/whitelist">
+                <button 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="text-left hover:text-minecraft-green transition-colors duration-300 w-full"
+                >
+                  Whitelist
+                </button>
+              </Link>
               <button 
                 onClick={() => scrollToSection('testimonials')}
                 className="text-left hover:text-minecraft-green transition-colors duration-300"

@@ -16,7 +16,7 @@ function AuthenticatedHeader() {
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <div className="flex items-center space-x-2">
           <Crown className="h-8 w-8 minecraft-green" />
-          <span className="text-2xl font-bold minecraft-green">LifeSteal Shop</span>
+          <span className="text-2xl font-bold minecraft-green">LIFESTEAL</span>
         </div>
         
         <div className="flex items-center space-x-4">
@@ -28,6 +28,14 @@ function AuthenticatedHeader() {
               </span>
             </div>
           )}
+          <a href="/whitelist">
+            <Button
+              variant="outline"
+              className="border-minecraft-green/30 text-minecraft-green hover:bg-minecraft-green hover:text-white transition-all duration-300 hover-lift"
+            >
+              Whitelist
+            </Button>
+          </a>
           <Button
             onClick={() => window.location.href = "/api/logout"}
             variant="outline"
