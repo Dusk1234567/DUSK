@@ -158,6 +158,7 @@ Preferred communication style: Simple, everyday language.
   - ✓ Removed complex order lookup page requiring email verification
   - ✓ Replaced with simple order status page using public order ID lookup
   - ✓ Updated navigation in header to point to /order-status instead of /order-lookup
+  - ✓ Updated button text from "Track Your Order" to "Order Status" in both desktop and mobile navigation
   - ✓ Updated email templates to direct users to simplified tracking page
   - ✓ Removed unnecessary /api/orders/lookup endpoint
   - ✓ System now uses single /api/orders/public/{orderId} endpoint for tracking

@@ -93,7 +93,7 @@ export default function Header() {
                 className="font-medium transition-all duration-300 hover-scale animate-slide-in-left stagger-3.5 border border-orange-500 px-4 py-2 rounded bg-orange-600 hover:bg-orange-700 text-white font-bold shadow-lg hover:shadow-orange-500/25"
               >
                 <Package className="h-4 w-4 mr-2 inline" />
-                Track Your Order
+                Order Status
               </button>
             </Link>
             <button 
@@ -237,7 +237,7 @@ export default function Header() {
                   className="text-left transition-colors duration-300 w-full font-bold border px-4 py-3 rounded bg-orange-600 hover:bg-orange-700 text-white shadow-lg"
                 >
                   <Package className="h-4 w-4 mr-2 inline" />
-                  Track Your Order
+                  Order Status
                 </button>
               </Link>
               <button 
