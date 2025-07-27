@@ -196,14 +196,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let originalAmount = 0;
       const orderItems = [];
       
-      console.log('Processing cart items:', cartItems.length, 'items');
       for (const item of cartItems) {
-        console.log('Looking for product with ID:', item.productId, 'Type:', typeof item.productId);
         const product = await storage.getProductById(item.productId);
         if (product) {
-          console.log('Product found:', product.id, product.name, 'Price:', product.price, 'Type:', typeof product.price);
           const itemTotal = parseFloat(product.price.toString()) * item.quantity;
-          console.log('Item total calculation:', parseFloat(product.price.toString()), '*', item.quantity, '=', itemTotal);
           originalAmount += itemTotal;
           
           orderItems.push({
@@ -213,11 +209,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             unitPrice: product.price,
             totalPrice: itemTotal.toFixed(2)
           });
-        } else {
-          console.log('Product not found for ID:', item.productId);
         }
       }
-      console.log('Final original amount:', originalAmount);
 
       // Handle coupon discount
       let discountAmount = 0;
@@ -375,14 +368,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { email, orderId } = req.query;
       
+      console.log('Order lookup request:', { email, orderId });
+      
       if (!email || !orderId) {
         return res.status(400).json({ message: "Email and Order ID are required" });
       }
       
       const order = await storage.getOrder(orderId as string);
+      console.log('Found order:', order ? `Order ${order.id} for ${order.email}` : 'No order found');
+      
       if (!order) {
         // In development with memory storage, orders are lost on server restart
         const allOrders = await storage.getAllOrders();
+        console.log('Total orders in storage:', allOrders.length);
         if (allOrders.length === 0) {
           return res.status(404).json({ 
             message: "Order not found", 
@@ -394,6 +392,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Verify email matches the order
       if (order.email !== email) {
+        console.log('Email mismatch:', { provided: email, orderEmail: order.email });
         return res.status(404).json({ message: "Order not found" });
       }
       
