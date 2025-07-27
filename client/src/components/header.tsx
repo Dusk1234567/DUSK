@@ -78,15 +78,20 @@ export default function Header() {
             >
               Products
             </button>
+            <Link href="/whitelist">
+              <button className="hover:text-minecraft-green transition-all duration-300 hover-scale animate-slide-in-left stagger-3">
+                Whitelist
+              </button>
+            </Link>
             <button 
               onClick={() => scrollToSection('testimonials')}
-              className="hover:text-minecraft-green transition-all duration-300 hover-scale animate-slide-in-left stagger-3"
+              className="hover:text-minecraft-green transition-all duration-300 hover-scale animate-slide-in-left stagger-4"
             >
               Reviews
             </button>
             <button 
               onClick={() => scrollToSection('footer')}
-              className="hover:text-minecraft-green transition-all duration-300 hover-scale animate-slide-in-left stagger-4"
+              className="hover:text-minecraft-green transition-all duration-300 hover-scale animate-slide-in-left stagger-5"
             >
               Support
             </button>

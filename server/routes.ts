@@ -1,7 +1,7 @@
 import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertCartItemSchema, insertOrderSchema, insertReviewSchema, insertAdminWhitelistSchema } from "@shared/schema";
+import { insertCartItemSchema, insertOrderSchema, insertReviewSchema, insertAdminWhitelistSchema, insertWhitelistRequestSchema } from "@shared/schema";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { setupGoogleAuth } from "./googleAuth";
 import { setupEmailAuth } from "./emailAuth";
@@ -434,6 +434,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating order status:", error);
       res.status(500).json({ message: "Failed to update order status" });
+    }
+  });
+
+  // Whitelist request routes
+  app.post('/api/whitelist', async (req: any, res) => {
+    try {
+      // Check if user is authenticated to link request to user account
+      let userId: string | undefined;
+      if (req.session.userId) {
+        userId = req.session.userId;
+      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+        userId = req.user.claims.sub;
+      }
+
+      const requestData = insertWhitelistRequestSchema.parse({
+        ...req.body,
+        userId
+      });
+
+      // Check if username is already requested
+      const existingRequest = await storage.getWhitelistRequestByUsername(requestData.minecraftUsername);
+      if (existingRequest && existingRequest.status === 'pending') {
+        return res.status(400).json({ message: "A whitelist request for this username is already pending" });
+      }
+
+      const request = await storage.createWhitelistRequest(requestData);
+      res.json(request);
+    } catch (error) {
+      console.error("Error creating whitelist request:", error);
+      res.status(400).json({ 
+        message: "Failed to create whitelist request",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.get('/api/whitelist', async (req: any, res) => {
+    try {
+      let requests;
+      // If user is authenticated, get their requests
+      if (req.session.userId || (req.isAuthenticated() && req.user?.claims?.sub)) {
+        const userId = req.session.userId || req.user.claims.sub;
+        requests = await storage.getWhitelistRequestsByUser(userId);
+      } else {
+        // For anonymous users, return empty array or error
+        return res.status(401).json({ message: "Authentication required to view whitelist requests" });
+      }
+      
+      res.json(requests);
+    } catch (error) {
+      console.error("Error fetching whitelist requests:", error);
+      res.status(500).json({ message: "Failed to fetch whitelist requests" });
+    }
+  });
+
+  // Admin whitelist management routes
+  app.get('/api/admin/whitelist-requests', isAdmin, async (req, res) => {
+    try {
+      const requests = await storage.getWhitelistRequests();
+      res.json(requests);
+    } catch (error) {
+      console.error("Error fetching whitelist requests:", error);
+      res.status(500).json({ message: "Failed to fetch whitelist requests" });
+    }
+  });
+
+  app.put('/api/admin/whitelist-requests/:id', isAdmin, async (req: any, res) => {
+    try {
+      const { status, reason } = req.body;
+      let processedBy: string | undefined;
+      
+      if (req.session.userId) {
+        processedBy = req.session.userId;
+      } else if (req.isAuthenticated() && req.user?.claims?.sub) {
+        processedBy = req.user.claims.sub;
+      }
+
+      const updatedRequest = await storage.updateWhitelistRequestStatus(
+        req.params.id, 
+        status, 
+        reason, 
+        processedBy
+      );
+      
+      if (!updatedRequest) {
+        return res.status(404).json({ message: "Whitelist request not found" });
+      }
+      
+      res.json(updatedRequest);
+    } catch (error) {
+      console.error("Error updating whitelist request:", error);
+      res.status(500).json({ message: "Failed to update whitelist request" });
     }
   });
 

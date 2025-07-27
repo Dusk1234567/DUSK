@@ -100,6 +100,20 @@ export const reviews = pgTable("reviews", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Minecraft whitelist requests table
+export const whitelistRequests = pgTable("whitelist_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  minecraftUsername: varchar("minecraft_username").notNull(),
+  email: varchar("email"),
+  discordUsername: varchar("discord_username"),
+  userId: varchar("user_id"), // Link to authenticated users
+  status: varchar("status", { length: 50 }).notNull().default("pending"), // pending, approved, rejected
+  reason: text("reason"), // Reason for rejection or admin notes
+  submittedAt: timestamp("submitted_at").defaultNow(),
+  processedAt: timestamp("processed_at"),
+  processedBy: varchar("processed_by"), // Admin who processed the request
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   reviews: many(reviews),
@@ -148,6 +162,17 @@ export const adminWhitelistRelations = relations(adminWhitelist, ({ one }) => ({
   }),
 }));
 
+export const whitelistRequestsRelations = relations(whitelistRequests, ({ one }) => ({
+  user: one(users, {
+    fields: [whitelistRequests.userId],
+    references: [users.id],
+  }),
+  processedByUser: one(users, {
+    fields: [whitelistRequests.processedBy],
+    references: [users.id],
+  }),
+}));
+
 export const insertProductSchema = createInsertSchema(products).omit({
   id: true,
 });
@@ -184,6 +209,16 @@ export const insertReviewSchema = createInsertSchema(reviews).omit({
   comment: z.string().min(1).max(500),
 });
 
+export const insertWhitelistRequestSchema = createInsertSchema(whitelistRequests).omit({
+  id: true,
+  submittedAt: true,
+  processedAt: true,
+}).extend({
+  minecraftUsername: z.string().min(3).max(16).regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
+  email: z.string().email().optional(),
+  discordUsername: z.string().max(32).optional(),
+});
+
 export type InsertProduct = z.infer<typeof insertProductSchema>;
 export type Product = typeof products.$inferSelect;
 export type InsertCartItem = z.infer<typeof insertCartItemSchema>;
@@ -198,3 +233,5 @@ export type UpsertUser = z.infer<typeof upsertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertReview = z.infer<typeof insertReviewSchema>;
 export type Review = typeof reviews.$inferSelect;
+export type InsertWhitelistRequest = z.infer<typeof insertWhitelistRequestSchema>;
+export type WhitelistRequest = typeof whitelistRequests.$inferSelect;

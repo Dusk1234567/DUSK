@@ -51,6 +51,19 @@ interface AdminWhitelistItem {
   createdAt: string;
 }
 
+interface WhitelistRequest {
+  id: string;
+  minecraftUsername: string;
+  email?: string;
+  discordUsername?: string;
+  userId?: string;
+  status: "pending" | "approved" | "rejected";
+  reason?: string;
+  submittedAt: string;
+  processedAt?: string;
+  processedBy?: string;
+}
+
 export default function Admin() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
@@ -88,6 +101,11 @@ export default function Admin() {
 
   const { data: whitelist = [] } = useQuery<AdminWhitelistItem[]>({
     queryKey: ["/api/admin/whitelist"],
+    enabled: user?.isAdmin,
+  });
+
+  const { data: whitelistRequests = [] } = useQuery<WhitelistRequest[]>({
+    queryKey: ["/api/admin/whitelist-requests"],
     enabled: user?.isAdmin,
   });
 
@@ -142,6 +160,22 @@ export default function Admin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/whitelist"] });
       toast({ title: "Admin removed successfully" });
+    },
+  });
+
+  const updateWhitelistRequestMutation = useMutation({
+    mutationFn: async ({ id, status, reason }: { id: string; status: string; reason?: string }) => {
+      const response = await fetch(`/api/admin/whitelist-requests/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status, reason }),
+      });
+      if (!response.ok) throw new Error("Failed to update whitelist request");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/whitelist-requests"] });
+      toast({ title: "Whitelist request updated successfully" });
     },
   });
 
@@ -209,6 +243,7 @@ export default function Admin() {
           <TabsList className="bg-black/40 border-green-500/20">
             <TabsTrigger value="orders" className="data-[state=active]:bg-green-600">Orders</TabsTrigger>
             <TabsTrigger value="users" className="data-[state=active]:bg-green-600">Users</TabsTrigger>
+            <TabsTrigger value="whitelist" className="data-[state=active]:bg-green-600">Whitelist Requests</TabsTrigger>
             <TabsTrigger value="admins" className="data-[state=active]:bg-green-600">Admin Whitelist</TabsTrigger>
           </TabsList>
 
@@ -324,6 +359,97 @@ export default function Admin() {
                     ))}
                   </TableBody>
                 </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Whitelist Requests Tab */}
+          <TabsContent value="whitelist">
+            <Card className="bg-black/40 backdrop-blur-lg border-green-500/20">
+              <CardHeader>
+                <CardTitle className="text-white">Whitelist Request Management</CardTitle>
+                <CardDescription className="text-gray-300">
+                  Review and manage Minecraft server whitelist requests
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-green-500/20">
+                      <TableHead className="text-gray-300">Username</TableHead>
+                      <TableHead className="text-gray-300">Contact</TableHead>
+                      <TableHead className="text-gray-300">Discord</TableHead>
+                      <TableHead className="text-gray-300">Status</TableHead>
+                      <TableHead className="text-gray-300">Submitted</TableHead>
+                      <TableHead className="text-gray-300">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {whitelistRequests.map((request) => (
+                      <TableRow key={request.id} className="border-green-500/20">
+                        <TableCell className="text-white font-mono">{request.minecraftUsername}</TableCell>
+                        <TableCell className="text-white">{request.email || "No email"}</TableCell>
+                        <TableCell className="text-white">{request.discordUsername || "No Discord"}</TableCell>
+                        <TableCell>
+                          <Badge 
+                            className={`${
+                              request.status === "approved" ? "bg-green-600" :
+                              request.status === "rejected" ? "bg-red-600" :
+                              "bg-yellow-600"
+                            } text-white`}
+                          >
+                            {request.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-white">
+                          {new Date(request.submittedAt).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          {request.status === "pending" && (
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                className="bg-green-600 hover:bg-green-700"
+                                onClick={() => updateWhitelistRequestMutation.mutate({
+                                  id: request.id,
+                                  status: "approved"
+                                })}
+                                disabled={updateWhitelistRequestMutation.isPending}
+                              >
+                                Approve
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => {
+                                  const reason = prompt("Reason for rejection (optional):");
+                                  updateWhitelistRequestMutation.mutate({
+                                    id: request.id,
+                                    status: "rejected",
+                                    reason: reason || undefined
+                                  });
+                                }}
+                                disabled={updateWhitelistRequestMutation.isPending}
+                              >
+                                Reject
+                              </Button>
+                            </div>
+                          )}
+                          {request.status !== "pending" && request.reason && (
+                            <div className="text-sm text-gray-400 max-w-32 truncate" title={request.reason}>
+                              {request.reason}
+                            </div>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {whitelistRequests.length === 0 && (
+                  <div className="text-center py-8 text-gray-400">
+                    No whitelist requests found.
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

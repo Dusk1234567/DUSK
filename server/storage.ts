@@ -6,6 +6,7 @@ import {
   adminWhitelist,
   users,
   reviews,
+  whitelistRequests,
   type Product,
   type InsertProduct,
   type CartItem,
@@ -20,6 +21,8 @@ import {
   type UpsertUser,
   type Review,
   type InsertReview,
+  type WhitelistRequest,
+  type InsertWhitelistRequest,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql } from "drizzle-orm";
@@ -69,6 +72,13 @@ export interface IStorage {
   getReviewsByProduct(productId: string): Promise<Review[]>;
   createReview(review: InsertReview): Promise<Review>;
   getReviewsByUser(userId: string): Promise<Review[]>;
+
+  // Whitelist request operations
+  createWhitelistRequest(request: InsertWhitelistRequest): Promise<WhitelistRequest>;
+  getWhitelistRequests(): Promise<WhitelistRequest[]>;
+  getWhitelistRequestsByUser(userId: string): Promise<WhitelistRequest[]>;
+  updateWhitelistRequestStatus(id: string, status: string, reason?: string, processedBy?: string): Promise<WhitelistRequest | undefined>;
+  getWhitelistRequestByUsername(username: string): Promise<WhitelistRequest | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -333,6 +343,48 @@ export class DatabaseStorage implements IStorage {
 
   async getAllUsers(): Promise<User[]> {
     return await db.select().from(users).orderBy(desc(users.createdAt));
+  }
+
+  // Whitelist request operations
+  async createWhitelistRequest(request: InsertWhitelistRequest): Promise<WhitelistRequest> {
+    const [newRequest] = await db.insert(whitelistRequests).values(request).returning();
+    return newRequest;
+  }
+
+  async getWhitelistRequests(): Promise<WhitelistRequest[]> {
+    return await db.select().from(whitelistRequests).orderBy(desc(whitelistRequests.submittedAt));
+  }
+
+  async getWhitelistRequestsByUser(userId: string): Promise<WhitelistRequest[]> {
+    return await db
+      .select()
+      .from(whitelistRequests)
+      .where(eq(whitelistRequests.userId, userId))
+      .orderBy(desc(whitelistRequests.submittedAt));
+  }
+
+  async updateWhitelistRequestStatus(id: string, status: string, reason?: string, processedBy?: string): Promise<WhitelistRequest | undefined> {
+    const [updated] = await db
+      .update(whitelistRequests)
+      .set({ 
+        status, 
+        reason,
+        processedBy,
+        processedAt: new Date()
+      })
+      .where(eq(whitelistRequests.id, id))
+      .returning();
+    return updated;
+  }
+
+  async getWhitelistRequestByUsername(username: string): Promise<WhitelistRequest | undefined> {
+    const [request] = await db
+      .select()
+      .from(whitelistRequests)
+      .where(eq(whitelistRequests.minecraftUsername, username))
+      .orderBy(desc(whitelistRequests.submittedAt))
+      .limit(1);
+    return request;
   }
 }
 

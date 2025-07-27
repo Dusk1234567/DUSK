@@ -117,6 +117,15 @@ Preferred communication style: Simple, everyday language.
 
 ### Recent Changes
 
+- **July 27, 2025**: Successfully implemented Minecraft server whitelist system
+  - Created comprehensive whitelist request page for users to submit Minecraft usernames
+  - Added whitelist requests database table with status tracking (pending, approved, rejected)
+  - Implemented whitelist management in admin dashboard with approval/rejection functionality
+  - Added navigation link to whitelist page in main header
+  - Users can optionally provide email and Discord for contact
+  - Admin can add reasons for rejections and track processing history
+  - Support for both authenticated and anonymous whitelist requests
+
 - **July 26, 2025**: Successfully implemented comprehensive authentication system
   - Added email registration and login with password hashing
   - Integrated Google OAuth with proper session handling
