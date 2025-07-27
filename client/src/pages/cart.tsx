@@ -195,18 +195,14 @@ export default function Cart() {
                   </div>
                 </div>
                 
-                <Button
-                  onClick={handleCheckout}
-                  disabled={checkoutMutation.isPending || !isAuthenticated}
-                  className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-green-500/25"
-                >
-                  {checkoutMutation.isPending 
-                    ? "Processing..." 
-                    : !isAuthenticated 
-                      ? "Login to Checkout" 
-                      : "Complete Purchase"
-                  }
-                </Button>
+                <Link href="/checkout">
+                  <Button
+                    disabled={items.length === 0}
+                    className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-green-500/25"
+                  >
+                    Proceed to Checkout
+                  </Button>
+                </Link>
                 
                 {!isAuthenticated && (
                   <p className="text-yellow-400 text-sm text-center">

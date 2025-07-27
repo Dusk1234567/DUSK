@@ -13,6 +13,9 @@ import Register from "@/pages/register";
 import Admin from "@/pages/admin";
 import Whitelist from "@/pages/whitelist";
 import Cart from "@/pages/cart";
+import Checkout from "@/pages/checkout";
+import OrderPage from "@/pages/order";
+import Orders from "@/pages/orders";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -25,6 +28,11 @@ function Router() {
       <Route path="/admin" component={Admin} />
       <Route path="/whitelist" component={Whitelist} />
       <Route path="/cart" component={Cart} />
+      <Route path="/checkout" component={Checkout} />
+      <Route path="/orders" component={Orders} />
+      <Route path="/order/:orderId">
+        {(params) => <OrderPage orderId={params.orderId} />}
+      </Route>
       <Route path="/" component={isAuthenticated ? Home : Landing} />
       <Route component={NotFound} />
     </Switch>

@@ -182,25 +182,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/orders", async (req, res) => {
     try {
       const sessionId = getSessionId(req);
-      const cartItems = await storage.getCartItems(sessionId);
+      const { playerName, email, paymentMethod, items } = req.body;
       
+      const cartItems = await storage.getCartItems(sessionId);
       if (cartItems.length === 0) {
         return res.status(400).json({ message: "Cart is empty" });
       }
 
-      // Calculate total amount
+      // Calculate total amount from cart items
       let totalAmount = 0;
+      const orderItems = [];
+      
       for (const item of cartItems) {
         const product = await storage.getProductById(item.productId);
         if (product) {
-          totalAmount += parseFloat(product.price) * item.quantity;
+          const itemTotal = parseFloat(product.price) * item.quantity;
+          totalAmount += itemTotal;
+          
+          orderItems.push({
+            productId: product.id,
+            productName: product.name,
+            quantity: item.quantity,
+            unitPrice: product.price,
+            totalPrice: itemTotal.toFixed(2)
+          });
         }
+      }
+
+      // Get user ID if authenticated
+      let userId: string | undefined;
+      if (req.session?.userId) {
+        userId = req.session.userId;
+      } else if (req.isAuthenticated && req.isAuthenticated() && req.user?.id) {
+        userId = req.user.id;
       }
 
       const orderData = insertOrderSchema.parse({
         sessionId,
+        userId,
         totalAmount: totalAmount.toFixed(2),
-        status: "pending"
+        status: "pending",
+        playerName: playerName?.trim(),
+        email: email?.trim(),
+        paymentMethod: paymentMethod || "pending",
+        items: orderItems
       });
 
       const order = await storage.createOrder(orderData);
@@ -210,6 +235,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(order);
     } catch (error) {
+      console.error("Order creation error:", error);
       res.status(500).json({ message: "Failed to create order" });
     }
   });
@@ -220,9 +246,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!order) {
         return res.status(404).json({ message: "Order not found" });
       }
+      
+      // Check if user has permission to view this order
+      const sessionId = getSessionId(req);
+      let userId: string | undefined;
+      
+      if (req.session?.userId) {
+        userId = req.session.userId;
+      } else if (req.isAuthenticated && req.isAuthenticated() && req.user?.id) {
+        userId = req.user.id;
+      }
+      
+      // Allow access if it's the user's order (by session or user ID)
+      if (order.sessionId !== sessionId && order.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
       res.json(order);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch order" });
+    }
+  });
+
+  // Get user's orders
+  app.get("/api/user/orders", isAuthenticatedUser, async (req: any, res) => {
+    try {
+      const userId = req.userId;
+      const orders = await storage.getOrdersByUser(userId);
+      res.json(orders);
+    } catch (error) {
+      console.error("Error fetching user orders:", error);
+      res.status(500).json({ message: "Failed to fetch orders" });
     }
   });
 
