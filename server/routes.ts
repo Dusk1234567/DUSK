@@ -715,8 +715,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Logout route
-  app.post('/api/auth/logout', async (req: any, res) => {
+  // Logout routes - support both POST and GET
+  const handleLogout = async (req: any, res: any) => {
     try {
       // Clear session for email/Google auth
       if (req.session) {
@@ -732,12 +732,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         req.logout(() => {});
       }
       
-      res.json({ message: "Logged out successfully" });
+      // For GET requests, redirect to home page
+      if (req.method === 'GET') {
+        res.redirect('/');
+      } else {
+        res.json({ message: "Logged out successfully" });
+      }
     } catch (error) {
       console.error("Error during logout:", error);
-      res.status(500).json({ message: "Failed to logout" });
+      if (req.method === 'GET') {
+        res.redirect('/');
+      } else {
+        res.status(500).json({ message: "Failed to logout" });
+      }
     }
-  });
+  };
+
+  app.post('/api/auth/logout', handleLogout);
+  app.get('/api/logout', handleLogout);
 
   // Reviews routes
   app.get('/api/reviews/:productId', async (req, res) => {
