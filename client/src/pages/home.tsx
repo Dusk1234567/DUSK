@@ -28,12 +28,12 @@ function AuthenticatedHeader() {
               </span>
             </div>
           )}
-          <a href="/order-lookup">
+          <a href="/order-status">
             <Button
               className="bg-orange-600 hover:bg-orange-700 text-white font-bold transition-all duration-300 hover-lift shadow-lg hover:shadow-orange-500/25"
             >
               <Shield className="h-4 w-4 mr-2" />
-              Track Your Order
+              Order Status
             </Button>
           </a>
           <a href="/whitelist">
