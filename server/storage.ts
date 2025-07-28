@@ -460,9 +460,19 @@ class MongoStorage implements IStorage {
   }
 
   async isUserAdmin(userId: string): Promise<boolean> {
-    await connectToDatabase();
-    const user = await UserModel.findById(userId);
-    return user?.isAdmin || false;
+    try {
+      await connectToDatabase();
+      // Check if userId is a valid ObjectId format
+      if (!userId.match(/^[0-9a-fA-F]{24}$/)) {
+        // If not valid ObjectId, use memory storage
+        return memoryStorage.isUserAdmin(userId);
+      }
+      const user = await UserModel.findById(userId);
+      return user?.isAdmin || false;
+    } catch (error) {
+      console.log('MongoDB unavailable, using memory storage');
+      return memoryStorage.isUserAdmin(userId);
+    }
   }
 
   async addToAdminWhitelist(admin: InsertAdminWhitelist): Promise<IAdminWhitelist> {

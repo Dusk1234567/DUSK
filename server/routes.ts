@@ -536,7 +536,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Admin access required" });
       }
       
-      const couponData = insertCouponSchema.parse(req.body);
+      // Transform date strings to Date objects
+      const requestData = {
+        ...req.body,
+        validFrom: new Date(req.body.validFrom),
+        validUntil: new Date(req.body.validUntil)
+      };
+      
+      const couponData = insertCouponSchema.parse(requestData);
       const coupon = await storage.createCoupon(couponData);
       
       res.json(coupon);
