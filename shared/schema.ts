@@ -253,12 +253,16 @@ export const insertCouponSchema = z.object({
   discountType: z.enum(['percentage', 'fixed']),
   discountValue: z.number().positive(),
   minimumOrderAmount: z.number().min(0).optional(),
+  maximumOrderAmount: z.number().min(0).optional(),
   maxUsages: z.number().int().positive().optional(),
   currentUsages: z.number().int().min(0).default(0),
   validFrom: z.date(),
   validUntil: z.date(),
   isActive: z.boolean().default(true),
   description: z.string().optional(),
+  applicableProducts: z.array(z.string()).optional(),
+  applicableCategories: z.array(z.string()).optional(),
+  excludedProducts: z.array(z.string()).optional(),
 });
 
 export const validateCouponSchema = z.object({

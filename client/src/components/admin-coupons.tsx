@@ -486,21 +486,21 @@ export function AdminCoupons() {
                     {coupon.description && (
                       <div className="text-xs text-gray-400 mt-1">{coupon.description}</div>
                     )}
-                    {(coupon.applicableCategories?.length || coupon.applicableProducts?.length || coupon.excludedProducts?.length) && (
+                    {((coupon.applicableCategories?.length ?? 0) > 0 || (coupon.applicableProducts?.length ?? 0) > 0 || (coupon.excludedProducts?.length ?? 0) > 0) && (
                       <div className="flex flex-wrap gap-1 mt-1">
                         {coupon.applicableCategories?.map(cat => (
                           <Badge key={cat} className="bg-blue-600 text-white text-xs">
                             {cat}
                           </Badge>
                         ))}
-                        {coupon.applicableProducts?.length > 0 && (
+                        {(coupon.applicableProducts?.length ?? 0) > 0 && (
                           <Badge className="bg-purple-600 text-white text-xs">
-                            +{coupon.applicableProducts.length} products
+                            +{coupon.applicableProducts?.length} products
                           </Badge>
                         )}
-                        {coupon.excludedProducts?.length > 0 && (
+                        {(coupon.excludedProducts?.length ?? 0) > 0 && (
                           <Badge className="bg-red-600 text-white text-xs">
-                            -{coupon.excludedProducts.length} excluded
+                            -{coupon.excludedProducts?.length} excluded
                           </Badge>
                         )}
                       </div>
