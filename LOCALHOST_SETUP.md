@@ -1,6 +1,6 @@
 # Localhost Setup Guide for Minecraft Lifesteal E-commerce Platform
 
-This guide will help you set up and run the Minecraft Lifesteal e-commerce platform on your local computer.
+This comprehensive guide will help you set up and run the complete Minecraft Lifesteal e-commerce platform on your local computer with all features including email notifications, order management, and admin functionality.
 
 ## Prerequisites
 
@@ -9,13 +9,19 @@ Before you begin, make sure you have the following installed on your computer:
 1. **Node.js** (version 18 or higher)
    - Download from: https://nodejs.org/
    - Verify installation: `node --version` and `npm --version`
+   - **Required**: The application uses modern ES modules and TypeScript
 
-2. **MongoDB** (version 4.4 or higher)
-   - Download from: https://www.mongodb.com/try/download/community
-   - Or use Docker: `docker run --name mongo -p 27017:27017 -d mongo:latest`
+2. **MongoDB** (version 4.4 or higher) - Choose one option:
+   - **Option A**: Local installation from https://www.mongodb.com/try/download/community
+   - **Option B**: Docker: `docker run --name lifesteal-mongo -p 27017:27017 -d mongo:latest`
+   - **Option C**: MongoDB Atlas (cloud) - Free tier available
 
 3. **Git** (for cloning the repository)
    - Download from: https://git-scm.com/
+
+4. **Gmail Account** (for email notifications)
+   - Required for order confirmations and status updates
+   - See EMAIL_SETUP.md for configuration
 
 ## Quick Setup
 
@@ -55,20 +61,43 @@ docker run --name lifesteal-mongo \
 
 1. Copy the example environment file:
    ```bash
-   cp .env.example .env
+   # Copy the local development example
+   cp .env.local.example .env
    ```
 
-2. Edit the `.env` file with your settings:
+2. **Required Configuration**: Edit the `.env` file with these essential settings:
    ```bash
-   # Required Database Configuration
+   # Database (REQUIRED)
    MONGODB_URL=mongodb://localhost:27017/DUSK
    
-   # Required Session Secret (use a random string)
-   SESSION_SECRET=your-very-secure-random-secret-key-here
+   # Session Security (REQUIRED) - Generate a long random string
+   SESSION_SECRET=your-very-secure-random-secret-key-here-change-this-immediately
    
-   # Server Configuration
+   # Server Settings (REQUIRED)
    PORT=5000
    NODE_ENV=development
+   FRONTEND_URL=http://localhost:5000
+   ```
+
+3. **Email Configuration** (HIGHLY RECOMMENDED for full functionality):
+   ```bash
+   # Gmail App Password for order notifications
+   EMAIL_APP_PASSWORD=your-16-character-gmail-app-password
+   ```
+   
+   **📧 To setup email notifications:**
+   - See `EMAIL_SETUP.md` for detailed Gmail configuration
+   - Without this, order confirmations won't be sent (but app still works)
+
+4. **Optional Features**:
+   ```bash
+   # Google OAuth Login (optional)
+   GOOGLE_CLIENT_ID=your-google-client-id
+   GOOGLE_CLIENT_SECRET=your-google-client-secret
+   
+   # File Upload Settings (optional - defaults work fine)
+   UPLOAD_DIR=./uploads
+   MAX_FILE_SIZE=5242880
    ```
 
 ### 4. Run the Application
@@ -210,16 +239,33 @@ lifesteal-ecommerce/
 └── package.json         # Dependencies and scripts
 ```
 
-## Features Available
+## Complete Feature Set
 
-- 🛍️ Product browsing and cart management
-- 👤 User authentication (email + optional Google OAuth)
-- 📦 Order management and tracking
-- 💳 Payment confirmation system
-- 🎮 Minecraft player management
-- 👑 Admin panel for order management
-- 📱 Mobile-responsive design
-- 🌙 Dark/light mode support
+### Customer Features
+- 🛍️ **Product Catalog**: Browse premium Minecraft ranks and coin packages
+- 🛒 **Shopping Cart**: Add/remove items with real-time cart updates
+- 👤 **User Authentication**: Email/password registration + optional Google OAuth
+- 📦 **Order Tracking**: Public order status lookup with detailed tracking
+- 💳 **Payment System**: QR code payment with screenshot upload confirmation
+- 📧 **Email Notifications**: Automated order confirmations and status updates
+- 📱 **Responsive Design**: Full mobile and desktop compatibility
+- 🎮 **Minecraft Integration**: Player name validation and whitelist requests
+
+### Admin Features
+- 👑 **Admin Dashboard**: Complete order and user management system
+- 📊 **Order Management**: View, update status, and track all customer orders
+- 🎫 **Coupon System**: Create and manage discount codes and promotions
+- 👥 **User Management**: View registered users and admin privileges
+- 🎮 **Whitelist Management**: Approve/reject Minecraft server whitelist requests
+- 📈 **Analytics**: Order tracking and sales overview
+
+### Technical Features
+- 🔒 **Secure Sessions**: JWT-based authentication with session management
+- 🛡️ **Data Protection**: Bcrypt password hashing and secure file uploads
+- 📱 **Real-time Updates**: Live cart updates and order status changes
+- 🌙 **Dark Mode**: Gaming-themed UI with Minecraft-inspired design
+- ⚡ **Performance**: Optimized MongoDB queries with memory storage fallback
+- 🚀 **Development Ready**: Hot reload, TypeScript, and comprehensive error handling
 
 ## Production Deployment
 

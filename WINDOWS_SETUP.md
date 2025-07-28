@@ -1,263 +1,317 @@
-# Windows Setup Guide for Minecraft Lifesteal E-commerce
+# Windows Setup Guide for LifeSteal Shop
 
-This guide specifically addresses Windows-specific setup issues and solutions.
+This guide provides Windows-specific instructions for setting up the LifeSteal Minecraft e-commerce platform on Windows systems.
 
-## Quick Fix for NODE_ENV Error
+## Prerequisites for Windows
 
-If you get `'NODE_ENV' is not recognized as an internal or external command` or `Environment variable REPLIT_DOMAINS not provided`, here are your solutions:
+### Required Software
+1. **Node.js 18+**: Download from https://nodejs.org/
+   - Choose "Windows Installer (.msi)" for your system (32-bit or 64-bit)
+   - During installation, check "Add to PATH" option
+   - Restart Command Prompt after installation
 
-### Option 1: Use npx cross-env (Recommended)
+2. **MongoDB** (Choose one option):
+   - **Option A**: MongoDB Community Server
+     - Download from https://www.mongodb.com/try/download/community
+     - Choose "Windows" platform and "msi" package
+     - Install with default settings
+     - MongoDB will run as a Windows service automatically
+   
+   - **Option B**: Docker Desktop
+     - Install Docker Desktop from https://docker.com/products/docker-desktop
+     - Run: `docker run --name lifesteal-mongo -p 27017:27017 -d mongo:latest`
+   
+   - **Option C**: MongoDB Atlas (Cloud)
+     - Create free account at https://mongodb.com/atlas
+     - Create cluster and get connection string
+
+3. **Git** (Optional): Download from https://git-scm.com/download/win
+
+## Quick Setup with Batch Script
+
+1. **Download/Clone the project**
+2. **Run the automated setup**:
+   ```cmd
+   setup-local.bat
+   ```
+3. **Follow the prompts** and edit the created .env file
+
+## Manual Setup Instructions
+
+### Step 1: Install Dependencies
+```cmd
+npm install
+```
+
+### Step 2: Environment Configuration
+1. **Copy environment template**:
+   ```cmd
+   copy .env.local.example .env
+   ```
+
+2. **Edit .env file** with your text editor (Notepad, VS Code, etc.):
+   ```bash
+   # Database Configuration
+   MONGODB_URL=mongodb://localhost:27017/DUSK
+   
+   # Session Security (IMPORTANT: Change this!)
+   SESSION_SECRET=your-very-secure-random-secret-key-here-change-this-immediately
+   
+   # Server Configuration
+   PORT=5000
+   NODE_ENV=development
+   FRONTEND_URL=http://localhost:5000
+   
+   # Email Configuration (see EMAIL_SETUP.md)
+   EMAIL_APP_PASSWORD=your-gmail-app-password
+   ```
+
+### Step 3: Start Development Server
+
+**Option 1: Standard method** (may not work on all Windows versions):
+```cmd
+npm run dev
+```
+
+**Option 2: If you get "NODE_ENV is not recognized" error**:
 ```cmd
 npx cross-env NODE_ENV=development tsx server/index.ts
 ```
 
-### Option 2: Command Prompt
+**Option 3: Command Prompt method**:
 ```cmd
 set NODE_ENV=development && tsx server/index.ts
 ```
 
-### Option 3: PowerShell
+**Option 4: PowerShell method**:
 ```powershell
 $env:NODE_ENV="development"; tsx server/index.ts
 ```
 
-### Option 4: Install cross-env globally
-```cmd
-npm install -g cross-env
-cross-env NODE_ENV=development tsx server/index.ts
-```
-
-## Windows-Specific Installation Steps
-
-### 1. Prerequisites
-- **Node.js 18+**: Download from [nodejs.org](https://nodejs.org/)
-- **Git**: Download from [git-scm.com](https://git-scm.com/)
-- **MongoDB**: One of the following options:
-
-#### MongoDB Options for Windows
-
-**Option A: MongoDB Community Server (Local)**
-1. Download from [MongoDB Download Center](https://www.mongodb.com/try/download/community)
-2. Install with default settings
-3. MongoDB will run as a Windows service automatically
-4. Verify: Open Command Prompt and type `mongosh`
-
-**Option B: MongoDB with Docker Desktop**
-1. Install [Docker Desktop for Windows](https://docs.docker.com/desktop/install/windows-install/)
-2. Run: `docker run --name mongo -p 27017:27017 -d mongo:latest`
-3. MongoDB will be available at `mongodb://localhost:27017/DUSK`
-
-**Option C: MongoDB Atlas (Cloud)**
-1. Sign up at [MongoDB Atlas](https://www.mongodb.com/atlas)
-2. Create a free cluster
-3. Get connection string and update `.env` file
-
-### 2. Project Setup
-
-```cmd
-# Clone and setup
-git clone <repository-url>
-cd lifesteal-ecommerce
-npm install
-
-# Copy environment file
-copy .env.example .env
-
-# Edit .env file with Notepad or VS Code
-notepad .env
-```
-
-### 3. Environment Configuration (.env file)
-
-```env
-# Required Database Configuration
-MONGODB_URL=mongodb://localhost:27017/DUSK
-
-# Required Session Secret (generate a random string)
-SESSION_SECRET=your-very-secure-random-secret-key-here
-
-# Server Configuration
-PORT=5000
-NODE_ENV=development
-```
-
-### 4. Starting the Application
-
-```cmd
-# Method 1: Using npx cross-env (recommended)
-npx cross-env NODE_ENV=development tsx server/index.ts
-
-# Method 2: Using Command Prompt
-set NODE_ENV=development && tsx server/index.ts
-
-# Method 3: Using PowerShell
-$env:NODE_ENV="development"; tsx server/index.ts
-```
-
-Visit: http://localhost:5000
+### Step 4: Create Admin User
+1. **Make sure the server is running** (from Step 3)
+2. **Open a new Command Prompt window**
+3. **Run the admin creation script**:
+   ```cmd
+   create-admin.bat
+   ```
+   
+   Or manually:
+   ```cmd
+   curl -X POST http://localhost:5000/api/auth/register -H "Content-Type: application/json" -d "{\"email\":\"admin@lifesteal.com\",\"password\":\"admin123\",\"firstName\":\"Admin\",\"lastName\":\"User\"}"
+   
+   curl -X POST http://localhost:5000/api/debug/make-admin -H "Content-Type: application/json" -d "{\"email\":\"admin@lifesteal.com\"}"
+   ```
 
 ## Windows-Specific Troubleshooting
 
-### MongoDB Service Issues
+### NODE_ENV Issues
+**Problem**: `'NODE_ENV' is not recognized as an internal or external command`
 
-**Check if MongoDB is running:**
+**Solutions**:
+1. **Install cross-env globally** (Recommended):
+   ```cmd
+   npm install -g cross-env
+   ```
+   Then use: `npm run dev`
+
+2. **Use npx**:
+   ```cmd
+   npx cross-env NODE_ENV=development tsx server/index.ts
+   ```
+
+3. **Set variable manually**:
+   ```cmd
+   set NODE_ENV=development
+   tsx server/index.ts
+   ```
+
+4. **PowerShell method**:
+   ```powershell
+   $env:NODE_ENV="development"
+   tsx server/index.ts
+   ```
+
+### MongoDB Issues
+
+#### MongoDB Service Not Starting
+1. **Check Windows Services**:
+   - Press `Win + R`, type `services.msc`
+   - Look for "MongoDB Server" service
+   - Right-click and select "Start" if stopped
+
+2. **Check if MongoDB is running**:
+   ```cmd
+   mongosh
+   ```
+   Or the older client:
+   ```cmd
+   mongo
+   ```
+
+3. **If MongoDB isn't installed properly**:
+   - Reinstall MongoDB Community Server
+   - Make sure to install as a Windows service
+   - Check that the MongoDB bin folder is in your PATH
+
+#### Docker MongoDB
+If using Docker:
 ```cmd
-# Open Services (Win + R, type 'services.msc')
-# Look for 'MongoDB Server' - it should be 'Running'
-```
+# Check if Docker is running
+docker ps
 
-**Start MongoDB manually:**
-```cmd
-# If installed as service
-net start MongoDB
+# Start MongoDB container
+docker run --name lifesteal-mongo -p 27017:27017 -d mongo:latest
 
-# If installed manually
-"C:\Program Files\MongoDB\Server\7.0\bin\mongod.exe" --dbpath "C:\data\db"
+# Check container status
+docker ps -a
 ```
 
 ### Port Issues
+**Problem**: Port 5000 already in use
 
-**Check what's using port 5000:**
-```cmd
-netstat -ano | findstr :5000
-```
+**Solutions**:
+1. **Change port in .env file**:
+   ```
+   PORT=3000
+   ```
 
-**Kill process using port:**
-```cmd
-taskkill /PID <process_id> /F
-```
+2. **Find what's using port 5000**:
+   ```cmd
+   netstat -ano | findstr :5000
+   ```
 
-### File Permission Issues
+3. **Kill the process** (replace PID with actual process ID):
+   ```cmd
+   taskkill /PID <PID> /F
+   ```
 
-**Run Command Prompt as Administrator:**
-1. Press Win + X
-2. Select "Command Prompt (Admin)" or "PowerShell (Admin)"
-3. Navigate to your project folder
-4. Run the installation commands
+### Permission Issues
+**Problem**: Access denied errors
 
-### Node.js Path Issues
+**Solutions**:
+1. **Run Command Prompt as Administrator**:
+   - Right-click Command Prompt
+   - Select "Run as administrator"
 
-**Verify Node.js installation:**
-```cmd
-node --version
-npm --version
-npx --version
-```
+2. **Check antivirus software**:
+   - Some antivirus may block file operations
+   - Add project folder to exclusions
 
-**If commands not found:**
-1. Reinstall Node.js from [nodejs.org](https://nodejs.org/)
-2. Make sure to check "Add to PATH" during installation
-3. Restart Command Prompt
+### File Path Issues
+**Problem**: Long file paths or special characters
 
-### Creating Directories
+**Solutions**:
+1. **Keep project in simple path**:
+   - Use `C:\lifesteal-shop\` instead of long nested paths
+   - Avoid spaces and special characters in folder names
 
-```cmd
-# Create uploads directory
-mkdir uploads
+2. **Enable long path support** (Windows 10/11):
+   ```cmd
+   # Run as Administrator
+   reg add HKLM\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1
+   ```
 
-# Create uploads subdirectories
-mkdir uploads\payment-screenshots
-```
+### curl Command Issues
+**Problem**: curl command not found
+
+**Solutions**:
+1. **Windows 10/11**: curl is included by default
+2. **Older Windows**: Install Git for Windows (includes curl)
+3. **Alternative**: Use PowerShell's Invoke-RestMethod:
+   ```powershell
+   Invoke-RestMethod -Uri "http://localhost:5000/api/products" -Method GET
+   ```
 
 ## Development Workflow for Windows
 
 ### Daily Development
-```cmd
-# 1. Start MongoDB (if not running as service)
-net start MongoDB
+1. **Start MongoDB** (if using local MongoDB):
+   - Should start automatically with Windows
+   - Check in Windows Services if needed
 
-# 2. Navigate to project
-cd path\to\lifesteal-ecommerce
+2. **Start development server**:
+   ```cmd
+   npx cross-env NODE_ENV=development tsx server/index.ts
+   ```
 
-# 3. Start development server
-npx cross-env NODE_ENV=development tsx server/index.ts
+3. **Open application**: http://localhost:5000
 
-# 4. Open browser to http://localhost:5000
-```
+### Email Setup for Windows
+1. **Follow EMAIL_SETUP.md** for Gmail configuration
+2. **Add EMAIL_APP_PASSWORD to .env file**
+3. **Restart the development server**
 
-### Building for Production
+### Production Build on Windows
 ```cmd
 # Build the application
 npm run build
 
 # Start production server
-npx cross-env NODE_ENV=production node dist/index.js
+set NODE_ENV=production && node dist/index.js
 ```
 
-## IDE Setup (Visual Studio Code)
+## Recommended Windows Tools
 
-### Recommended Extensions
-- **MongoDB for VS Code**: MongoDB support
-- **Thunder Client**: API testing
-- **Prettier**: Code formatting
-- **ESLint**: Code linting
+### Code Editors
+- **Visual Studio Code**: Free, excellent TypeScript support
+- **WebStorm**: Full-featured IDE for JavaScript/TypeScript
+- **Sublime Text**: Lightweight editor
 
-### VS Code Settings
-Create `.vscode/settings.json`:
-```json
-{
-  "typescript.preferences.importModuleSpecifier": "relative",
-  "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode"
-}
-```
+### Terminal Alternatives
+- **Windows Terminal**: Modern terminal with tabs and themes
+- **PowerShell 7**: Cross-platform PowerShell
+- **Git Bash**: Unix-like terminal (comes with Git for Windows)
 
-## Common Windows Error Solutions
-
-### 1. "tsx is not recognized"
-```cmd
-# Install tsx globally
-npm install -g tsx
-
-# Or use npx
-npx tsx server/index.ts
-```
-
-### 2. "Permission denied" during npm install
-```cmd
-# Run as administrator or use:
-npm install --no-optional
-```
-
-### 3. "ENOENT: no such file or directory"
-```cmd
-# Make sure you're in the project directory
-cd lifesteal-ecommerce
-
-# Check if package.json exists
-dir package.json
-```
-
-### 4. MongoDB Connection Failed
-- Verify MongoDB service is running: `services.msc`
-- Check firewall isn't blocking port 27017
-- Try connection string: `mongodb://127.0.0.1:27017/DUSK`
+### Database Tools
+- **MongoDB Compass**: Official GUI for MongoDB
+- **Robo 3T**: Lightweight MongoDB client
+- **mongosh**: Modern MongoDB shell
 
 ## Performance Tips for Windows
 
-1. **Exclude from Windows Defender**: Add project folder to exclusions
-2. **Use SSD**: Store project on SSD for better performance
-3. **Close unnecessary programs**: Free up RAM and CPU
-4. **Use Windows Terminal**: Better than Command Prompt
+1. **Exclude project folder from Windows Defender**:
+   - Windows Security → Virus & threat protection
+   - Manage settings → Add exclusion
+   - Add your project folder
+
+2. **Use SSD storage** for better file I/O performance
+
+3. **Close unnecessary programs** during development
+
+4. **Consider WSL2** for Linux-like development environment:
+   ```cmd
+   wsl --install
+   ```
 
 ## Getting Help
 
-If you encounter issues:
-1. Check this guide first
-2. Verify all prerequisites are installed
-3. Check the main [LOCALHOST_SETUP.md](./LOCALHOST_SETUP.md)
-4. Look at the [.env.example](./.env.example) for configuration
+### Common Issues
+- **Check Windows Event Viewer** for system-level errors
+- **Use Windows Task Manager** to check resource usage
+- **Check Windows Firewall** if having network issues
 
-## Alternative Setup Methods
+### Useful Commands
+```cmd
+# Check Node.js version
+node --version
 
-### Using Windows Subsystem for Linux (WSL)
-If you prefer a Linux-like environment:
-1. Install WSL2
-2. Install Ubuntu from Microsoft Store
-3. Follow Linux setup instructions instead
+# Check npm version
+npm --version
 
-### Using GitHub Codespaces
-For cloud development:
-1. Fork the repository on GitHub
-2. Click "Code" → "Create codespace"
-3. Everything will be pre-configured
+# Check if MongoDB is running
+mongosh --eval "db.runCommand('ping')"
+
+# Check what's running on port 5000
+netstat -ano | findstr :5000
+
+# Clear npm cache
+npm cache clean --force
+```
+
+### Support Resources
+- [Node.js Windows Documentation](https://nodejs.org/en/download/package-manager/#windows)
+- [MongoDB Windows Installation](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-windows/)
+- [npm Windows Troubleshooting](https://docs.npmjs.com/troubleshooting)
+
+The LifeSteal Shop is designed to work seamlessly on Windows with proper setup. Follow this guide for the best experience on Windows systems.

@@ -1,203 +1,244 @@
-# Minecraft Lifesteal E-commerce Platform
+# LifeSteal Shop - Complete Minecraft E-commerce Platform
 
-A comprehensive e-commerce platform specifically designed for Minecraft Lifesteal servers, featuring advanced order management, user authentication, and payment processing capabilities.
+A comprehensive e-commerce platform built specifically for Minecraft servers, featuring product sales, user authentication, order management, coupon system, whitelist management, and a complete admin dashboard with email notifications.
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Local Development)
 
-### For Local Development
+### Automated Setup
 
-1. **Prerequisites**
-   - Node.js 18+ 
-   - MongoDB (local or cloud)
-   - Git
+**Linux/macOS:**
+```bash
+bash setup-local.sh
+```
 
-2. **Installation**
+**Windows:**
+```batch
+setup-local.bat
+```
+
+### Manual Setup
+
+1. **Install Node.js 18+** from https://nodejs.org/
+2. **Setup MongoDB** (choose one):
+   - Local: Install from https://mongodb.com/try/download/community
+   - Docker: `docker run --name lifesteal-mongo -p 27017:27017 -d mongo:latest`
+   - Cloud: Use MongoDB Atlas (free tier)
+3. **Configure Environment**:
    ```bash
-   git clone <repository-url>
-   cd lifesteal-ecommerce
-   npm install
+   cp .env.local.example .env
+   # Edit .env with your settings
    ```
+4. **Install Dependencies**: `npm install`
+5. **Start Development**: `npm run dev`
+6. **Visit**: http://localhost:5000
 
-3. **Environment Setup**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your MongoDB URL and other settings
-   ```
+### Create Admin User
+```bash
+# Linux/macOS
+bash create-admin.sh
 
-4. **Start Development Server**
-   ```bash
-   npm run dev
-   ```
+# Windows
+create-admin.bat
 
-   Visit: http://localhost:5000
+# Manual (server must be running)
+curl -X POST http://localhost:5000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@lifesteal.com","password":"admin123","firstName":"Admin","lastName":"User"}'
 
-## 📚 Documentation
+curl -X POST http://localhost:5000/api/debug/make-admin \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@lifesteal.com"}'
+```
 
-- [Complete Localhost Setup Guide](./LOCALHOST_SETUP.md) - Detailed instructions for running locally
-- [Windows Setup Guide](./WINDOWS_SETUP.md) - Windows-specific setup and troubleshooting
-- [Environment Variables Guide](./.env.example) - All configuration options
+## 📖 Complete Documentation
 
-## 🏗️ Architecture
+| Guide | Description |
+|-------|-------------|
+| **[LOCALHOST_SETUP.md](LOCALHOST_SETUP.md)** | Comprehensive local development setup |
+| **[EMAIL_SETUP.md](EMAIL_SETUP.md)** | Email notifications configuration |
+| **[ADMIN_GUIDE.md](ADMIN_GUIDE.md)** | Admin dashboard usage and management |
+| **[WINDOWS_SETUP.md](WINDOWS_SETUP.md)** | Windows-specific setup instructions |
 
-### Tech Stack
-- **Frontend**: React 18 + TypeScript + Tailwind CSS
-- **Backend**: Express.js + Node.js
-- **Database**: MongoDB with Mongoose ODM
-- **Authentication**: Session-based + Optional Google OAuth
-- **Build Tool**: Vite
-- **UI Components**: Shadcn/ui + Radix UI
+## 🎮 Features
 
-### Database Design
-- **MongoDB Collections**: Products, Orders, Users, Cart Items, Reviews, Payment Confirmations
-- **Fallback**: Automatic in-memory storage when MongoDB is unavailable
-- **Schema Validation**: Zod schemas for type safety
-
-## 🌟 Features
-
-- 🛍️ **Product Management**: Browse products by category with advanced filtering
-- 🛒 **Shopping Cart**: Session-based cart with real-time updates
+### Customer Experience
+- 🛍️ **Product Catalog**: Premium Minecraft ranks and coin packages
+- 🛒 **Shopping Cart**: Real-time cart with quantity management
 - 👤 **Authentication**: Email/password + optional Google OAuth
-- 📦 **Order System**: Complete order lifecycle management
-- 💳 **Payment Processing**: Screenshot-based payment confirmation
-- 🎮 **Minecraft Integration**: Player name validation and server whitelist management
-- 👑 **Admin Panel**: Order management, user administration, analytics
-- 📱 **Responsive Design**: Mobile-first UI with dark/light mode
-- 🔒 **Security**: Input validation, SQL injection prevention, secure sessions
+- 📦 **Order Tracking**: Public order status lookup with detailed history
+- 💳 **Payment System**: QR code payment with screenshot upload
+- 📧 **Email Notifications**: Automated order confirmations and updates
+- 🎮 **Minecraft Integration**: Player name validation and server whitelist
+- 📱 **Responsive Design**: Optimized for mobile and desktop
 
-## 🔧 Environment Variables
+### Admin Management
+- 👑 **Admin Dashboard**: Complete order and user management
+- 📊 **Order Processing**: Status updates with automatic email notifications
+- 🎫 **Coupon System**: Create discount codes with flexible rules
+- 👥 **User Management**: View users and grant admin privileges
+- 🎮 **Whitelist Management**: Approve/reject Minecraft server access
+- 📈 **Analytics**: Order tracking and sales overview
+- 🔧 **System Tools**: Debug endpoints and administrative controls
 
-### Required
-- `MONGODB_URL`: MongoDB connection string
-- `SESSION_SECRET`: Session encryption key
-- `PORT`: Server port (default: 5000)
-- `NODE_ENV`: Environment mode
+### Technical Features
+- 🔒 **Secure Authentication**: JWT tokens with bcrypt password hashing
+- 🛡️ **Data Protection**: Session management and secure file uploads
+- ⚡ **Performance**: MongoDB with memory storage fallback
+- 🌙 **Gaming Theme**: Minecraft-inspired UI with dark mode
+- 🔄 **Real-time Updates**: Live cart updates and order status changes
+- 📱 **Cross-platform**: Works on Windows, macOS, and Linux
 
-### Optional
-- `GOOGLE_CLIENT_ID`: Google OAuth client ID
-- `GOOGLE_CLIENT_SECRET`: Google OAuth secret
-- `SMTP_*`: Email configuration
-- `UPLOAD_DIR`: File upload directory
+## 🛠️ Tech Stack
 
-See [.env.example](./.env.example) for complete list.
+### Frontend
+- **React 18** with TypeScript
+- **Tailwind CSS** for styling
+- **Shadcn/ui** component library
+- **TanStack Query** for state management
+- **Wouter** for routing
+- **Vite** for development and building
 
-## 🗄️ Database Options
+### Backend
+- **Node.js** with Express
+- **TypeScript** with ES modules
+- **MongoDB** with Mongoose ODM
+- **JWT** authentication
+- **Multer** for file uploads
+- **Nodemailer** for email notifications
 
-### Local MongoDB
+### Database
+- **MongoDB** for primary storage
+- **Memory Storage** fallback for development
+- **Automatic Schema Creation** with validation
+
+## 🔧 Development Commands
+
 ```bash
-# Install MongoDB locally
-brew install mongodb/brew/mongodb-community  # macOS
-# or download from mongodb.com
+# Development
+npm run dev                    # Start development server
+npm run check                  # TypeScript type checking
 
-# Start MongoDB
-brew services start mongodb-community  # macOS
+# Production
+npm run build                  # Build for production
+npm run start                  # Start production server
+
+# Cross-platform support
+npx cross-env NODE_ENV=development tsx server/index.ts    # Windows compatible
 ```
 
-### Docker MongoDB
-```bash
-docker run --name mongo -p 27017:27017 -d mongo:latest
-```
+## 📁 Project Structure
 
-### MongoDB Atlas (Cloud)
-1. Sign up at [MongoDB Atlas](https://www.mongodb.com/atlas)
-2. Create free cluster
-3. Get connection string
-4. Update `MONGODB_URL` in `.env`
-
-## 🚀 Deployment
-
-### Production Setup
-1. Set `NODE_ENV=production`
-2. Use production MongoDB database
-3. Configure secure session secrets
-4. Set up HTTPS and domain
-5. Configure file upload storage
-
-### Build Commands
-```bash
-npm run build    # Build for production
-npm run start    # Start production server
-npm run check    # TypeScript type checking
-```
-
-## 🛠️ Development
-
-### Project Structure
 ```
 lifesteal-ecommerce/
-├── client/                 # React frontend
+├── client/                    # React frontend application
 │   ├── src/
-│   │   ├── pages/         # Route components
-│   │   ├── components/    # Reusable UI components
-│   │   └── lib/          # Utilities and hooks
-├── server/                # Express backend
-│   ├── index.ts          # Server entry point
-│   ├── routes.ts         # API endpoints
-│   ├── storage.ts        # Database operations
-│   └── auth/             # Authentication modules
-├── shared/               # Shared TypeScript types
-│   └── schema.ts         # Database schemas & validation
-└── uploads/              # File storage (auto-created)
+│   │   ├── components/        # Reusable UI components
+│   │   ├── pages/            # Application pages/routes
+│   │   ├── hooks/            # Custom React hooks
+│   │   └── lib/              # Utilities and configurations
+├── server/                    # Express backend server
+│   ├── routes.ts             # API endpoints
+│   ├── storage.ts            # Database abstraction layer
+│   ├── emailService.ts       # Email notification system
+│   └── auth/                 # Authentication modules
+├── shared/                    # Shared TypeScript types and schemas
+├── uploads/                   # File upload storage
+├── setup-local.sh             # Automated setup script (Linux/macOS)
+├── setup-local.bat            # Automated setup script (Windows)
+├── create-admin.sh            # Admin user creation (Linux/macOS)
+├── create-admin.bat           # Admin user creation (Windows)
+└── .env.local.example         # Environment configuration template
 ```
 
-### Available Scripts
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run check` - TypeScript type checking
+## 🌐 Environment Configuration
 
-### API Endpoints
-- `GET /api/products` - List products
-- `POST /api/cart` - Add to cart
-- `POST /api/orders` - Create order
-- `GET /api/auth/user` - Get current user
-- `POST /api/reviews` - Add product review
-- `GET /api/admin/*` - Admin endpoints
-
-## 🔐 Authentication
-
-### Email Authentication
-- User registration with email/password
-- Secure password hashing with bcrypt
-- Session-based authentication
-
-### Google OAuth (Optional)
-1. Create Google Cloud Console project
-2. Enable Google+ API
-3. Create OAuth 2.0 credentials
-4. Set redirect URI: `http://localhost:5000/api/auth/google/callback`
-5. Add credentials to `.env`
-
-## 📝 Contributing
-
-1. Fork the repository
-2. Create feature branch
-3. Make changes with tests
-4. Submit pull request
-
-## 🆘 Troubleshooting
-
-### Common Issues
-- **MongoDB Connection**: Check if MongoDB is running
-- **Port Conflicts**: Change PORT in `.env`
-- **Build Errors**: Clear `node_modules` and reinstall
-- **TypeScript Errors**: Run `npm run check`
-
-### Debug Mode
+### Required Settings
 ```bash
-NODE_ENV=development npm run dev
+# Database (MongoDB)
+MONGODB_URL=mongodb://localhost:27017/DUSK
+
+# Security (IMPORTANT: Change this!)
+SESSION_SECRET=your-very-secure-random-secret-key-here
+
+# Server
+PORT=5000
+NODE_ENV=development
+FRONTEND_URL=http://localhost:5000
 ```
 
-## 📜 License
+### Optional Features
+```bash
+# Email Notifications (Highly Recommended)
+EMAIL_APP_PASSWORD=your-16-character-gmail-app-password
 
-MIT License - see LICENSE file for details.
+# Google OAuth Login
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# File Upload Settings
+UPLOAD_DIR=./uploads
+MAX_FILE_SIZE=5242880
+```
+
+## 🔐 Security Features
+
+- **Password Hashing**: Bcrypt with salt rounds
+- **Session Management**: Secure session tokens with expiration
+- **File Upload Security**: Type validation and size limits
+- **Admin Controls**: Role-based access control
+- **CSRF Protection**: Built-in session protection
+- **Input Validation**: Zod schema validation on all endpoints
+
+## 🚀 Deployment Options
+
+### Local Development
+- Memory storage fallback when MongoDB unavailable
+- Hot reload with TypeScript support
+- Comprehensive error logging and debugging
+
+### Production Deployment
+- MongoDB Atlas or self-hosted MongoDB
+- Environment-specific configurations
+- Email notifications for customer engagement
+- Admin dashboard for complete control
+
+## 💡 Common Use Cases
+
+1. **Minecraft Server Owners**: Sell ranks, coins, and perks
+2. **Gaming Communities**: Manage whitelist and user access
+3. **E-commerce**: Product catalog with payment processing
+4. **Admin Management**: Complete order and user administration
+5. **Customer Service**: Automated emails and order tracking
+
+## 🐛 Troubleshooting
+
+### Windows Users
+If you encounter `'NODE_ENV' is not recognized`:
+```bash
+npx cross-env NODE_ENV=development tsx server/index.ts
+```
+
+### Database Issues
+- App automatically uses memory storage if MongoDB unavailable
+- Check MongoDB service status: `brew services list | grep mongodb` (macOS)
+- Docker MongoDB: `docker ps` to check if container is running
+
+### Email Not Working
+- Verify Gmail App Password setup (see EMAIL_SETUP.md)
+- Check server logs for detailed error messages
+- Test with different email addresses
+
+## 📄 License
+
+This project is licensed under the MIT License. See the LICENSE file for details.
 
 ## 🤝 Support
 
-- Check [LOCALHOST_SETUP.md](./LOCALHOST_SETUP.md) for detailed setup help
-- Review environment variables in [.env.example](./.env.example)
-- Ensure MongoDB is properly configured and running
-- Verify all required dependencies are installed
+- Check the documentation guides for detailed setup instructions
+- Review server console logs for error details
+- Verify environment configuration matches examples
+- Test with the provided admin account for debugging
 
 ---
 
-Built with ❤️ for Minecraft Lifesteal communities
+**Ready to start?** Run `bash setup-local.sh` (Linux/macOS) or `setup-local.bat` (Windows) for automatic setup!
