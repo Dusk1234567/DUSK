@@ -117,6 +117,15 @@ Preferred communication style: Simple, everyday language.
 
 ### Recent Changes
 
+- **July 28, 2025**: Fixed MongoDB schema and data persistence issues
+  - ✓ Restored proper MongoDB schema with interfaces for document storage
+  - ✓ Fixed TypeScript errors in storage layer to support both MongoDB and memory fallback
+  - ✓ Created comprehensive RESTART_GUIDE.md with data persistence explanations
+  - ✓ App now runs successfully with memory storage fallback when MongoDB unavailable
+  - ✓ Clarified that data loss on restart is expected behavior in memory storage mode
+  - ✓ Provided multiple MongoDB setup options (Atlas, local, Docker) for persistent data
+  - ✓ Added admin restoration commands for after app restarts
+
 - **July 28, 2025**: Made application fully compatible for local development
   - ✓ Created comprehensive .env.local.example with all configuration options
   - ✓ Updated LOCALHOST_SETUP.md with detailed setup instructions for all platforms

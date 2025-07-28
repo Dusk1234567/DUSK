@@ -24,17 +24,17 @@ import {
 import { connectToDatabase } from "./db";
 import { memoryStorage } from "./memoryStorage";
 
-// MongoDB Document interfaces
-interface ProductDocument extends IProduct, Document {}
-interface CartItemDocument extends ICartItem, Document {}
-interface OrderDocument extends IOrder, Document {}
-interface OrderItemDocument extends IOrderItem, Document {}
-interface AdminWhitelistDocument extends IAdminWhitelist, Document {}
-interface UserDocument extends IUser, Document {}
-interface ReviewDocument extends IReview, Document {}
-interface WhitelistRequestDocument extends IWhitelistRequest, Document {}
-interface PaymentConfirmationDocument extends IPaymentConfirmation, Document {}
-interface CouponDocument extends ICoupon, Document {}
+// MongoDB Document interfaces (omit _id to avoid conflicts)
+interface ProductDocument extends Omit<IProduct, '_id'>, Document {}
+interface CartItemDocument extends Omit<ICartItem, '_id'>, Document {}
+interface OrderDocument extends Omit<IOrder, '_id'>, Document {}
+interface OrderItemDocument extends Omit<IOrderItem, '_id'>, Document {}
+interface AdminWhitelistDocument extends Omit<IAdminWhitelist, '_id'>, Document {}
+interface UserDocument extends Omit<IUser, '_id'>, Document {}
+interface ReviewDocument extends Omit<IReview, '_id'>, Document {}
+interface WhitelistRequestDocument extends Omit<IWhitelistRequest, '_id'>, Document {}
+interface PaymentConfirmationDocument extends Omit<IPaymentConfirmation, '_id'>, Document {}
+interface CouponDocument extends Omit<ICoupon, '_id'>, Document {}
 
 // Mongoose Schemas
 const ProductSchema = new Schema({
@@ -250,7 +250,7 @@ class MongoStorage implements IStorage {
     try {
       await connectToDatabase();
       const products = await ProductModel.find({});
-      return products.map(toPlainObject);
+      return products.map(toPlainObject<IProduct>);
     } catch (error) {
       console.log('MongoDB unavailable, using memory storage');
       return memoryStorage.getProducts();
@@ -277,7 +277,7 @@ class MongoStorage implements IStorage {
     try {
       await connectToDatabase();
       const products = await ProductModel.find({ category });
-      return products.map(toPlainObject);
+      return products.map(toPlainObject<IProduct>);
     } catch (error) {
       console.log('MongoDB unavailable, using memory storage');
       return memoryStorage.getProductsByCategory(category);
@@ -300,7 +300,7 @@ class MongoStorage implements IStorage {
     try {
       await connectToDatabase();
       const items = await CartItemModel.find({ sessionId });
-      return items.map(toPlainObject);
+      return items.map(toPlainObject<ICartItem>);
     } catch (error) {
       console.log('MongoDB unavailable, using memory storage');
       return memoryStorage.getCartItems(sessionId);
@@ -318,11 +318,11 @@ class MongoStorage implements IStorage {
       if (existingItem) {
         existingItem.quantity += cartItem.quantity;
         const updated = await existingItem.save();
-        return toPlainObject(updated);
+        return toPlainObject<ICartItem>(updated);
       } else {
         const newItem = new CartItemModel(cartItem);
         const saved = await newItem.save();
-        return toPlainObject(saved);
+        return toPlainObject<ICartItem>(saved);
       }
     } catch (error) {
       console.log('MongoDB unavailable, using memory storage');
@@ -428,19 +428,19 @@ class MongoStorage implements IStorage {
   async getOrdersByUser(userId: string): Promise<IOrder[]> {
     await connectToDatabase();
     const orders = await OrderModel.find({ userId }).sort({ createdAt: -1 });
-    return orders.map(toPlainObject);
+    return orders.map(toPlainObject<IOrder>);
   }
 
   async getOrdersByEmail(email: string): Promise<IOrder[]> {
     await connectToDatabase();
     const orders = await OrderModel.find({ email }).sort({ createdAt: -1 });
-    return orders.map(toPlainObject);
+    return orders.map(toPlainObject<IOrder>);
   }
 
   async getAllOrders(): Promise<IOrder[]> {
     await connectToDatabase();
     const orders = await OrderModel.find({}).sort({ createdAt: -1 });
-    return orders.map(toPlainObject);
+    return orders.map(toPlainObject<IOrder>);
   }
 
   async updateOrderStatus(id: string, status: string): Promise<IOrder | undefined> {
