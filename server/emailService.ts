@@ -16,7 +16,7 @@ const createTransporter = () => {
   }
 
   console.log('Creating email transporter with Gmail SMTP');
-  console.log('Email user:', 'dusk49255@gmail.com');
+  console.log('Email user:', process.env.EMAIL_USER || 'dusk49255@gmail.com');
   console.log('Password length:', process.env.EMAIL_APP_PASSWORD.length);
 
   try {
@@ -25,7 +25,7 @@ const createTransporter = () => {
       port: 587,
       secure: false, // true for 465, false for other ports
       auth: {
-        user: 'dusk49255@gmail.com',
+        user: process.env.EMAIL_USER || 'dusk49255@gmail.com',
         pass: process.env.EMAIL_APP_PASSWORD
       },
       debug: true, // Enable debug logging
