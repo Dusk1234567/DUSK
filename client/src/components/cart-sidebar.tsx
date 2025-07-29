@@ -112,7 +112,7 @@ export default function CartSidebar() {
                     </div>
                     <div className="text-right">
                       <div className="minecraft-green font-bold">
-                        ${item.product ? (parseFloat(item.product.price) * item.quantity).toFixed(2) : "0.00"}
+                        ₹{item.product ? (parseFloat(item.product.price) * item.quantity).toFixed(2) : "0.00"}
                       </div>
                       <Button
                         variant="ghost"
