@@ -81,7 +81,7 @@ export default function ProductCard({ product, animationDelay = 0, onViewDetails
         
         <div className="flex items-center justify-between mb-4">
           <div className="text-2xl font-bold text-white">
-            ${product.price}
+            ₹{product.price}
           </div>
           {product.bonusText ? (
             <div className={`font-bold ${product.badgeColor === 'neon-cyan' ? 'neon-cyan' : product.badgeColor === 'yellow-400' ? 'text-yellow-400' : 'minecraft-green'}`}>
