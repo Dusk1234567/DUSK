@@ -127,7 +127,7 @@ export default function Cart() {
                         <Badge className="bg-green-600 text-white">
                           {item.product?.category === "ranks" ? "Rank" : "Coins"}
                         </Badge>
-                        <span className="text-green-400 font-bold">${item.product?.price || '0'}</span>
+                        <span className="text-green-400 font-bold">₹{item.product?.price || '0'}</span>
                       </div>
                     </div>
 
