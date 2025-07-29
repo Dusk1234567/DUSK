@@ -164,7 +164,7 @@ export default function Cart() {
 
                     <div className="text-right">
                       <div className="text-white font-bold">
-                        ${(parseFloat(item.product?.price || '0') * item.quantity).toFixed(2)}
+                        ₹{(parseFloat(item.product?.price || '0') * item.quantity).toFixed(2)}
                       </div>
                     </div>
                   </div>
@@ -182,16 +182,16 @@ export default function Cart() {
               <CardContent className="space-y-4">
                 <div className="flex justify-between text-gray-300">
                   <span>Subtotal</span>
-                  <span>${totalAmount.toFixed(2)}</span>
+                  <span>₹{totalAmount.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-gray-300">
                   <span>Processing Fee</span>
-                  <span>$0.00</span>
+                  <span>₹0.00</span>
                 </div>
                 <div className="border-t border-green-500/20 pt-4">
                   <div className="flex justify-between text-xl font-bold text-white">
                     <span>Total</span>
-                    <span className="text-green-400">${totalAmount.toFixed(2)}</span>
+                    <span className="text-green-400">₹{totalAmount.toFixed(2)}</span>
                   </div>
                 </div>
                 
