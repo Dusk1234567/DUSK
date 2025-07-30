@@ -61,7 +61,7 @@ export default function Header() {
           <div className="flex items-center space-x-4">
             <div className="text-2xl font-bold text-green-400 animate-scale-in hover-glow transition-all duration-300 cursor-pointer" style={{color: '#4ade80'}}>
               <span className="text-2xl" style={{color: '#4ade80'}}>⚔️</span>
-              <span className="ml-2 font-extrabold tracking-wider" style={{color: '#4ade80'}}>LIFESTEAL</span>
+              <span className="ml-2 font-extrabold tracking-wider" style={{color: '#4ade80'}}>DUSK SMP</span>
             </div>
           </div>
           
