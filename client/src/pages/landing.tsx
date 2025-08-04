@@ -10,7 +10,7 @@ export default function Landing() {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <Crown className="h-8 w-8 minecraft-green" />
-            <span className="text-2xl font-bold" style={{color: '#ef4444'}}>DUSK SMP SHOP</span>
+            <span className="text-2xl font-bold" style={{color: '#ef4444'}}>RAZOR CLOUD</span>
           </div>
           <div className="flex gap-4">
             <Button
@@ -52,7 +52,7 @@ export default function Landing() {
         
         <div className="relative z-20 max-w-4xl mx-auto">
           <h1 className="text-6xl md:text-8xl font-bold mb-6" style={{color: '#ef4444'}}>
-            DUSK SMP SHOP
+            RAZOR CLOUD
           </h1>
           
           <p className="text-xl md:text-2xl mb-8 minecraft-gray">
