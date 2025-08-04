@@ -56,7 +56,7 @@ export default function Landing() {
           </h1>
           
           <p className="text-xl md:text-2xl mb-8 minecraft-gray">
-            Upgrade your Minecraft experience with premium ranks and coins
+            Upgrade your Minecraft experience with premium Server's and VPS
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
@@ -72,7 +72,7 @@ export default function Landing() {
               className="bg-minecraft-green hover:bg-minecraft-dark-green text-dark-slate px-8 py-4 text-lg font-bold transition-all duration-300 hover-lift"
             >
               <Crown className="h-5 w-5 mr-2" />
-              Login to Browse Ranks
+              Login to Browse Server Packs
             </Button>
             <Button
               onClick={() => window.location.href = "/register"}
@@ -86,7 +86,7 @@ export default function Landing() {
               }}
             >
               <Coins className="h-5 w-5 mr-2" />
-              Sign Up to Buy Coins
+              Sign Up to Buy VPS
             </Button>
           </div>
           
