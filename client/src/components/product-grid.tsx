@@ -32,8 +32,8 @@ export default function ProductGrid() {
 
   const filterButtons = [
     { id: "all", label: "All Products", icon: null },
-    { id: "ranks", label: "Server", icon: crown },
-    { id: "coins", label: "VPS", icon: vps },
+    { id: "ranks", label: "Server", icon: Crown },
+    { id: "coins", label: "VPS", icon: coins },
   ];
 
   return (
