@@ -32,8 +32,8 @@ export default function ProductGrid() {
 
   const filterButtons = [
     { id: "all", label: "All Products", icon: null },
-    { id: "ranks", label: "Ranks", icon: Crown },
-    { id: "coins", label: "Coins", icon: Coins },
+    { id: "ranks", label: "Server", icon: Minecraft },
+    { id: "coins", label: "VPS", icon: vps },
   ];
 
   return (
@@ -43,7 +43,7 @@ export default function ProductGrid() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4 minecraft-green animate-slide-up">Our Products</h2>
-            <p className="text-xl minecraft-gray animate-fade-in stagger-1">Choose from our premium selection of ranks and coins</p>
+            <p className="text-xl minecraft-gray animate-fade-in stagger-1">Choose from our premium selection of SERVER'S and VPS</p>
           </div>
           
           <div className="flex flex-wrap justify-center gap-4 mb-12">
