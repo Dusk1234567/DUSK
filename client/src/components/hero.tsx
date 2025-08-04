@@ -25,7 +25,7 @@ export default function Hero() {
       <div className="relative z-20 text-center px-4 max-w-4xl mx-auto">
         <div className="animate-float">
           <h1 className="text-6xl md:text-8xl font-bold mb-6 from-minecraft-green to-neon-cyan bg-clip-text animate-scale-in text-[#152fbd] bg-[#b8121200]">
-            DUSK SMP SHOP
+            RAZOR CLOUD
           </h1>
         </div>
         
@@ -46,7 +46,7 @@ export default function Hero() {
             className="bg-minecraft-green hover:bg-minecraft-dark-green text-dark-slate px-8 py-4 text-lg font-bold transition-all duration-300 animate-glow hover-lift animate-scale-in stagger-1 click-effect"
           >
             <Crown className="h-5 w-5 mr-2 hover-rotate transition-transform duration-300" />
-            Browse Ranks
+            Buy SERVERS
           </Button>
           <Button
             onClick={scrollToProducts}
@@ -59,7 +59,7 @@ export default function Hero() {
             }}
           >
             <Coins className="h-5 w-5 mr-2 hover-rotate transition-transform duration-300" />
-            Buy Coins
+            Buy VPS
           </Button>
         </div>
         
